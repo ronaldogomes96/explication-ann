@@ -11,6 +11,7 @@ def transform(x, columns):
 if __name__ == '__main__':
     df = pd.read_csv('iris.csv')
     features, target = df.columns[:-1], df.columns[-1]
+    df[target] = pd.factorize(df[target])[0]
     x, y = df.loc[:, features], df.loc[:, target]
     x = transform(x, features)
     print(x)

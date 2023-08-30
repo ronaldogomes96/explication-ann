@@ -44,7 +44,10 @@ if __name__ == '__main__':
     metrics = (tf.keras.metrics.SparseCategoricalAccuracy(),)
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
     patience = int(n_epochs * 0.1)
-    callbacks = (tf.keras.callbacks.EarlyStopping(patience=patience),)
+    callbacks = (
+        tf.keras.callbacks.EarlyStopping(patience=patience),
+        tf.keras.callbacks.ModelCheckpoint(filepath='iris.keras')
+    )
     start_time = time()
     model.fit(
         x_train,

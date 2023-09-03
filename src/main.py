@@ -1,17 +1,10 @@
 import logging
-import pandas as pd
 import tensorflow as tf
 
 from pathlib import Path
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
 from time import time
 
-
-def transform(x, columns):
-    x = StandardScaler().fit_transform(x)
-    return pd.DataFrame(x, columns=columns)
-
+from src.datasets.utils import prepare_and_save_dataset, read_all_datasets
 
 if __name__ == '__main__':
     Path('log').mkdir(exist_ok=True)
@@ -22,13 +15,8 @@ if __name__ == '__main__':
         encoding='utf-8',
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
-    df = pd.read_csv('iris.csv')
-    features, target = df.columns[:-1], df.columns[-1]
-    df[target] = pd.factorize(df[target])[0]
-    x, y = df.loc[:, features], df.loc[:, target]
-    x = transform(x, features)
-    x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, random_state=0, stratify=y)
-    x_test, x_val, y_test, y_val = train_test_split(x_test, y_test, test_size=0.5, random_state=0, stratify=y_test)
+    prepare_and_save_dataset('iris')
+    (x_train, y_train), (x_val, y_val), (x_test, y_test) = read_all_datasets('iris')
     input_shape = (x_train.shape[1],)
     n_layers = 3
     n_neurons = 3

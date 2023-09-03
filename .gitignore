@@ -12,3 +12,8 @@ log
 
 # model
 *.keras
+
+# datasets
+train.csv
+validation.csv
+test.csv

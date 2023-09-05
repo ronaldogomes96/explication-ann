@@ -1,6 +1,6 @@
 import pandas as pd
 
-from os.path import dirname, join
+from os.path import dirname, exists, join
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
@@ -36,6 +36,13 @@ def _load_dataset_factory(dataset_name):
 def _transform(x, columns):
     x = StandardScaler().fit_transform(x)
     return pd.DataFrame(x, columns=columns)
+
+
+def is_dataset_prepared(dataset_name):
+    train_csv_path = _get_dataset_path(dataset_name, 'train.csv')
+    validation_csv_path = _get_dataset_path(dataset_name, 'validation.csv')
+    test_csv_path = _get_dataset_path(dataset_name, 'test.csv')
+    return exists(train_csv_path) and exists(validation_csv_path) and exists(test_csv_path)
 
 
 def read_all_datasets(dataset_name):

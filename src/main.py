@@ -4,7 +4,7 @@ import tensorflow as tf
 from pathlib import Path
 from time import time
 
-from src.datasets.utils import prepare_and_save_dataset, read_all_datasets
+from src.datasets.utils import is_dataset_prepared, prepare_and_save_dataset, read_all_datasets
 
 if __name__ == '__main__':
     Path('log').mkdir(exist_ok=True)
@@ -15,7 +15,9 @@ if __name__ == '__main__':
         encoding='utf-8',
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
-    prepare_and_save_dataset('iris')
+    if not is_dataset_prepared('iris'):
+        logging.info('Preparing the dataset iris...')
+        prepare_and_save_dataset('iris')
     (x_train, y_train), (x_val, y_val), (x_test, y_test) = read_all_datasets('iris')
     input_shape = (x_train.shape[1],)
     n_layers = 3

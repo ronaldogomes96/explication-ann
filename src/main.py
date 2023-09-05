@@ -16,10 +16,11 @@ if __name__ == '__main__':
         encoding='utf-8',
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
-    if not is_dataset_prepared('iris'):
-        logging.info('Preparing the dataset iris...')
-        prepare_and_save_dataset('iris')
-    (x_train, y_train), (x_val, y_val), (x_test, y_test) = read_all_datasets('iris')
+    dataset_name = 'iris'
+    if not is_dataset_prepared(dataset_name):
+        logging.info(f'Preparing the dataset {dataset_name}...')
+        prepare_and_save_dataset(dataset_name)
+    (x_train, y_train), (x_val, y_val), (x_test, y_test) = read_all_datasets(dataset_name)
     input_shape = (x_train.shape[1],)
     params = iris.get_params()
     n_layers = params['n_layers']
@@ -36,9 +37,10 @@ if __name__ == '__main__':
     metrics = (tf.keras.metrics.SparseCategoricalAccuracy(),)
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
     patience = int(n_epochs * 0.1)
+    filepath = f'{dataset_name}.keras'
     callbacks = (
         tf.keras.callbacks.EarlyStopping(patience=patience),
-        tf.keras.callbacks.ModelCheckpoint(filepath='iris.keras')
+        tf.keras.callbacks.ModelCheckpoint(filepath=filepath)
     )
     start_time = time()
     model.fit(

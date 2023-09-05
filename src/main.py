@@ -5,6 +5,7 @@ from pathlib import Path
 from time import time
 
 from src.datasets.utils import is_dataset_prepared, prepare_and_save_dataset, read_all_datasets
+from src.models.iris import iris
 
 if __name__ == '__main__':
     Path('log').mkdir(exist_ok=True)
@@ -20,10 +21,11 @@ if __name__ == '__main__':
         prepare_and_save_dataset('iris')
     (x_train, y_train), (x_val, y_val), (x_test, y_test) = read_all_datasets('iris')
     input_shape = (x_train.shape[1],)
-    n_layers = 3
-    n_neurons = 3
-    n_epochs = 1000
-    batch_size = 10
+    params = iris.get_params()
+    n_layers = params['n_layers']
+    n_neurons = params['n_neurons']
+    n_epochs = params['n_epochs']
+    batch_size = params['batch_size']
     model = tf.keras.models.Sequential()
     model.add(tf.keras.layers.Dense(n_neurons, input_shape=input_shape, activation='relu'))
     for _ in range(n_layers - 2):

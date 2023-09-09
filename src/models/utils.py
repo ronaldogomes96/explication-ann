@@ -11,9 +11,14 @@ def _get_model_path(*paths):
     return join(dirname(__file__), *paths)
 
 
+def _get_params_factory(dataset_name):
+    if dataset_name == 'iris':
+        return iris.get_params()
+
+
 def train(dataset_name, x_train, y_train, x_val, y_val, x_test, y_test):
     input_shape = (x_train.shape[1],)
-    params = iris.get_params()
+    params = _get_params_factory(dataset_name)
     n_layers = params['n_layers']
     n_neurons = params['n_neurons']
     n_epochs = params['n_epochs']

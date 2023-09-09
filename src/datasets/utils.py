@@ -1,3 +1,4 @@
+import logging
 import pandas as pd
 
 from os.path import dirname, exists, join
@@ -42,7 +43,10 @@ def is_dataset_prepared(dataset_name):
     train_csv_path = _get_dataset_path(dataset_name, 'train.csv')
     validation_csv_path = _get_dataset_path(dataset_name, 'validation.csv')
     test_csv_path = _get_dataset_path(dataset_name, 'test.csv')
-    return exists(train_csv_path) and exists(validation_csv_path) and exists(test_csv_path)
+    if exists(train_csv_path) and exists(validation_csv_path) and exists(test_csv_path):
+        logging.info(f'Dataset {dataset_name} is already prepared.')
+        return True
+    return False
 
 
 def read_all_datasets(dataset_name):
@@ -56,6 +60,7 @@ def read_all_datasets(dataset_name):
 
 
 def prepare_and_save_dataset(dataset_name):
+    logging.info(f'Preparing the dataset {dataset_name}...')
     x, y = _load_dataset_factory(dataset_name)
     (x_train, y_train), (x_val, y_val), (x_test, y_test) = _split_dataset(x, y)
     train_csv_path = _get_dataset_path(dataset_name, 'train.csv')
@@ -64,3 +69,4 @@ def prepare_and_save_dataset(dataset_name):
     _save_dataset(x_train, y_train, train_csv_path)
     _save_dataset(x_val, y_val, validation_csv_path)
     _save_dataset(x_test, y_test, test_csv_path)
+    logging.info(f'Dataset {dataset_name} prepared.')

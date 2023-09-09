@@ -18,7 +18,7 @@ def _get_params_factory(dataset_name):
 
 def is_model_trained(dataset_name):
     if exists(_get_model_path(dataset_name, f'{dataset_name}.h5')):
-        logging.info(f'Model of {dataset_name} is already trained')
+        logging.info(f'Model of {dataset_name} is already trained.')
         return True
     return False
 
@@ -27,13 +27,13 @@ def eval(dataset_name, x_test, y_test):
     model_path = _get_model_path(dataset_name, f'{dataset_name}.h5')
     model = tf.keras.models.load_model(model_path)
     batch_size = _get_params_factory(dataset_name)['batch_size']
-    logging.info(f'Starting to evaluate the dataset {dataset_name}')
+    logging.info(f'Starting to evaluate the dataset {dataset_name}...')
     start_time = time()
     loss, accuracy = model.evaluate(x_test, y_test, batch_size=batch_size, verbose=0)
     end_time = time()
     logging.info(f'Loss: {loss}')
     logging.info(f'Accuracy: {accuracy * 100.0:.2f}%')
-    logging.info(f'Time of evaluating: {end_time - start_time:.2f} seconds.')
+    logging.info(f'Time of evaluation: {end_time - start_time:.2f} seconds.')
 
 
 def train(dataset_name, x_train, y_train, x_val, y_val):
@@ -58,7 +58,7 @@ def train(dataset_name, x_train, y_train, x_val, y_val):
         tf.keras.callbacks.EarlyStopping(patience=patience),
         tf.keras.callbacks.ModelCheckpoint(filepath=filepath, save_best_only=True)
     )
-    logging.info(f'Starting to train the dataset {dataset_name}')
+    logging.info(f'Starting to train the dataset {dataset_name}...')
     start_time = time()
     model.fit(
         x_train,

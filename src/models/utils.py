@@ -16,7 +16,16 @@ def _get_params_factory(dataset_name):
         return iris.get_params()
 
 
-def train(dataset_name, x_train, y_train, x_val, y_val, x_test, y_test):
+def eval(dataset_name, x_test, y_test):
+    model_path = _get_model_path(dataset_name, f'{dataset_name}.h5')
+    model = tf.keras.models.load_model(model_path)
+    batch_size = _get_params_factory(dataset_name)['batch_size']
+    loss, accuracy = model.evaluate(x_test, y_test, batch_size=batch_size, verbose=0)
+    logging.info(f'Loss: {loss}')
+    logging.info(f'Accuracy: {accuracy * 100.0:.2f}%')
+
+
+def train(dataset_name, x_train, y_train, x_val, y_val):
     input_shape = (x_train.shape[1],)
     params = _get_params_factory(dataset_name)
     n_layers = params['n_layers']
@@ -33,10 +42,10 @@ def train(dataset_name, x_train, y_train, x_val, y_val, x_test, y_test):
     metrics = (tf.keras.metrics.SparseCategoricalAccuracy(),)
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
     patience = int(n_epochs * 0.1)
-    filepath = _get_model_path(dataset_name, f'{dataset_name}.keras')
+    filepath = _get_model_path(dataset_name, f'{dataset_name}.h5')
     callbacks = (
         tf.keras.callbacks.EarlyStopping(patience=patience),
-        tf.keras.callbacks.ModelCheckpoint(filepath=filepath)
+        tf.keras.callbacks.ModelCheckpoint(filepath=filepath, save_best_only=True)
     )
     start_time = time()
     model.fit(
@@ -49,7 +58,4 @@ def train(dataset_name, x_train, y_train, x_val, y_val, x_test, y_test):
         verbose=0
     )
     end_time = time()
-    loss, accuracy = model.evaluate(x_test, y_test, batch_size=batch_size, verbose=0)
     logging.info(f'Time of training: {end_time - start_time:.2f} seconds.')
-    logging.info(f'Loss: {loss}')
-    logging.info(f'Accuracy: {accuracy * 100.0:.2f}%')

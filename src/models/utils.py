@@ -23,9 +23,13 @@ def is_model_trained(dataset_name):
     return False
 
 
-def eval(dataset_name, x_test, y_test):
+def load_model(dataset_name):
     model_path = _get_model_path(dataset_name, f'{dataset_name}.h5')
-    model = tf.keras.models.load_model(model_path)
+    return tf.keras.models.load_model(model_path)
+
+
+def eval(dataset_name, x_test, y_test):
+    model = load_model(dataset_name)
     batch_size = _get_params_factory(dataset_name)['batch_size']
     logging.info(f'Starting to evaluate the dataset {dataset_name}...')
     start_time = time()

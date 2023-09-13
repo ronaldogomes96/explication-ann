@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 
 from src.datasets.utils import is_dataset_prepared, prepare_and_save_dataset, read_all_datasets
+from src.explications.utils import get_minimal_explication
 from src.models.utils import eval, train, is_model_trained
 
 if __name__ == '__main__':
@@ -21,3 +22,4 @@ if __name__ == '__main__':
     if not is_model_trained(dataset_name):
         train(dataset_name, x_train, y_train, x_val, y_val)
     eval(dataset_name, x_test, y_test)
+    get_minimal_explication(dataset_name)

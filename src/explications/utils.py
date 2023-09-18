@@ -24,11 +24,24 @@ def get_input_variables_and_bounds(solver, x):
     return input_variables, bounds
 
 
+def get_decision_variables(solver, layer_index, number_neurons):
+    decision_variables = []
+    for neuron_index in range(number_neurons):
+        decision_variables.append(solver.IntVar(0, 1, f'z_{layer_index}_{neuron_index}'))
+    return decision_variables
+
+
 def build_network(x, layers):
     solver = pywraplp.Solver.CreateSolver('SAT')
-    variables = {}
+    variables = {'decision': []}
     bounds = {}
     variables['input'], bounds['input'] = get_input_variables_and_bounds(solver, x)
+    last_layer = layers[-1]
+    for layer_index, layer in enumerate(layers):
+        number_neurons = layer.get_weights()[0].shape[1]
+        if layer == last_layer:
+            break
+        variables['decision'].append(get_decision_variables(solver, layer_index, number_neurons))
     return solver, bounds
 
 

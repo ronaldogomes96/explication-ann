@@ -47,6 +47,55 @@ def get_output_variables(solver, number_outputs):
     return output_variables
 
 
+def maximize(solver, variable):
+    solver.Maximize(variable)
+    status = solver.Solve()
+    if status != pywraplp.Solver.OPTIMAL:
+        raise Exception('The variable cannot be maximized')
+    objective = solver.Objective().Value()
+    solver.Objective().Clear()
+    return objective
+
+
+def minimize(solver, variable):
+    solver.Minimize(variable)
+    status = solver.Solve()
+    if status != pywraplp.Solver.OPTIMAL:
+        raise Exception('The variable cannot be minimized')
+    objective = solver.Objective().Value()
+    solver.Objective().Clear()
+    return objective
+
+
+def build_tjeng_network(solver, layers, variables):
+    output_bounds = []
+    last_layer = layers[-1]
+    for layer_index, layer in enumerate(layers):
+        x = variables['input'] if layer_index == 0 else variables['intermediate'][layer_index - 1]
+        _A = layer.get_weights()[0].T
+        _b = layer.get_weights()[1]
+        _y, _z = (variables['intermediate'][layer_index], variables['decision'][layer_index]) if layer != last_layer \
+            else (variables['output'], np.empty(len(_A)))
+        for neuron_index, (A, b, y, z) in enumerate(zip(_A, _b, _y, _z)):
+            result = A @ x + b
+            upper_bound = maximize(solver, result)
+            if upper_bound <= 0 and layer != last_layer:
+                solver.Add(y == 0, f'c_{layer_index}_{neuron_index}')
+                continue
+            lower_bound = minimize(solver, result)
+            if lower_bound >= 0 and layer != last_layer:
+                solver.Add(y == result, f'c_{layer_index}_{neuron_index}')
+                continue
+            if layer != last_layer:
+                solver.Add(y <= result - lower_bound * (1 - z))
+                solver.Add(y >= result)
+                solver.Add(y <= upper_bound * z)
+            else:
+                solver.Add(y == result)
+                output_bounds.append((lower_bound, upper_bound))
+    return solver, output_bounds
+
+
 def build_network(x, layers):
     solver = pywraplp.Solver.CreateSolver('SAT')
     variables = {'decision': [], 'intermediate': []}
@@ -60,6 +109,7 @@ def build_network(x, layers):
             break
         variables['intermediate'].append(get_intermediate_variables(solver, layer_index, number_variables))
         variables['decision'].append(get_decision_variables(solver, layer_index, number_variables))
+    solver, bounds['output'] = build_tjeng_network(solver, layers, variables)
     return solver, bounds
 
 

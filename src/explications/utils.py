@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 from docplex.mp.model import Model
+from time import time
 
 from src.datasets.utils import read_all_datasets
 from src.models.utils import load_model
@@ -137,15 +138,17 @@ def minimal_explication(mdl: Model, bounds, network):
     return explication_mask
 
 
-def get_minimal_explication(dataset_name):
+def get_minimal_explication(dataset_name, metrics):
     (x_train, _1), (x_val, _2), (x_test, _3) = read_all_datasets(dataset_name)
     x = pd.concat((x_train, x_val, x_test), ignore_index=True)
     model = load_model(dataset_name)
     layers = model.layers
     mdl, bounds = build_network(x, layers)
     y_pred = np.argmax(model.predict(x_test), axis=1)
+    start_time = time()
     for (network_index, network_input), network_output in zip(x_test.iterrows(), y_pred):
         network = {'input': network_input, 'output': network_output}
-        explication = minimal_explication(mdl, bounds, network)
-        print(explication)
+        minimal_explication(mdl, bounds, network)
+    end_time = time()
+    metrics['explication_times'].append(end_time - start_time)
     mdl.end()

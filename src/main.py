@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 
 from pathlib import Path
 
@@ -22,4 +23,10 @@ if __name__ == '__main__':
     if not is_model_trained(dataset_name):
         train(dataset_name, x_train, y_train, x_val, y_val)
     eval(dataset_name, x_test, y_test)
-    get_minimal_explication(dataset_name)
+    metrics = {
+        'explication_times': []
+    }
+    for i in range(10):
+        get_minimal_explication(dataset_name, metrics)
+    avg_explication_time = np.average(metrics['explication_times'])
+    logging.info(f'Average time of explication: {avg_explication_time:.2f} seconds.')

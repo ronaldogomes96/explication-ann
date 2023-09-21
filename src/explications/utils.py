@@ -82,8 +82,21 @@ def build_tjeng_network(mdl: Model, layers, variables):
     return output_bounds
 
 
+def insert_tjeng_output_constraints(mdl: Model, output_bounds, variables, network_output):
+    output_variable = variables['output'][network_output]
+    upper_lower_diffs = output_bounds[network_output][1] - np.array(output_bounds)[:, 0]
+    binary_index = 0
+    for output_index, output in enumerate(variables['output']):
+        if output_index == network_output:
+            continue
+        diff = upper_lower_diffs[output_index]
+        binary_variable = variables['binary'][binary_index]
+        mdl.add_constraint(output_variable - output - diff * (1 - binary_variable) <= 0)
+        binary_index += 1
+
+
 def build_network(x, layers):
-    mdl = Model()
+    mdl = Model(name='original')
     variables = {'decision': [], 'intermediate': []}
     bounds = {}
     variables['input'], bounds['input'] = get_input_variables_and_bounds(mdl, x)
@@ -99,9 +112,40 @@ def build_network(x, layers):
     return mdl, bounds
 
 
+def minimal_explication(mdl: Model, bounds, network):
+    mdl_clone = mdl.clone(new_name='clone')
+    number_features = len(bounds['input'])
+    number_outputs = len(bounds['output'])
+    variables = {
+        'input': [mdl_clone.get_var_by_name(f'x_{feature_index}') for feature_index in range(number_features)],
+        'output': [mdl_clone.get_var_by_name(f'o_{output_index}') for output_index in range(number_outputs)],
+        'binary': mdl_clone.binary_var_list(number_outputs - 1, name='q')
+    }
+    input_constraints = mdl_clone.add_constraints(
+        [input_variable == feature for input_variable, feature in zip(variables['input'], network['input'])])
+    mdl_clone.add_constraint(mdl_clone.sum(variables['binary']) >= 1)
+    insert_tjeng_output_constraints(mdl_clone, bounds['output'], variables, network['output'])
+    explication_mask = np.ones_like(network['input'], dtype=bool)
+    for constraint_index, constraint in enumerate(input_constraints):
+        mdl_clone.remove_constraint(constraint)
+        explication_mask[constraint_index] = False
+        mdl_clone.solve()
+        if mdl_clone.solution is not None:
+            mdl_clone.add_constraint(constraint)
+            explication_mask[constraint_index] = True
+    mdl_clone.end()
+    return explication_mask
+
+
 def get_minimal_explication(dataset_name):
-    (x_train, y_train), (x_val, y_val), (x_test, y_test) = read_all_datasets(dataset_name)
+    (x_train, _1), (x_val, _2), (x_test, _3) = read_all_datasets(dataset_name)
     x = pd.concat((x_train, x_val, x_test), ignore_index=True)
-    layers = load_model(dataset_name).layers
+    model = load_model(dataset_name)
+    layers = model.layers
     mdl, bounds = build_network(x, layers)
-    print(mdl, bounds)
+    y_pred = np.argmax(model.predict(x_test), axis=1)
+    for (network_index, network_input), network_output in zip(x_test.iterrows(), y_pred):
+        network = {'input': network_input, 'output': network_output}
+        explication = minimal_explication(mdl, bounds, network)
+        print(explication)
+    mdl.end()

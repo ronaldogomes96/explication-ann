@@ -43,6 +43,7 @@ def minimal_explication(mdl: Model, layers, bounds, network, use_box):
     mdl_clone.add_constraint(mdl_clone.sum(variables['binary']) >= 1)
     insert_tjeng_output_constraints(mdl_clone, bounds['output'], variables, network['output'])
     explication_mask = np.ones_like(network['input'], dtype=bool)
+    box_mask = np.zeros_like(network['input'], dtype=bool)
     for constraint_index, constraint in enumerate(input_constraints):
         mdl_clone.remove_constraint(constraint)
         explication_mask[constraint_index] = False
@@ -50,26 +51,35 @@ def minimal_explication(mdl: Model, layers, bounds, network, use_box):
             relax_input_mask = ~explication_mask
             relaxed_input_bounds = box_relax_input_bounds(bounds['input'], network['input'], relax_input_mask)
             if box_has_solution(relaxed_input_bounds, layers, network['output']):
+                box_mask[constraint_index] = True
                 continue
         mdl_clone.solve(log_output=False)
         if mdl_clone.solution is not None:
             mdl_clone.add_constraint(constraint)
             explication_mask[constraint_index] = True
     mdl_clone.end()
-    return explication_mask
+    return {
+        'explication_mask': explication_mask,
+        'box_mask': box_mask
+    } if use_box else {
+        'explication_mask': explication_mask
+    }
 
 
-def get_minimal_explication(dataset_name, metrics, use_box=False):
+def get_minimal_explications(dataset_name, metrics, use_box=False):
     (x_train, _1), (x_val, _2), (x_test, _3) = read_all_datasets(dataset_name)
     x = pd.concat((x_train, x_val, x_test), ignore_index=True)
     model = load_model(dataset_name)
     layers = model.layers
     mdl, bounds = build_network(x, layers)
     y_pred = np.argmax(model.predict(x_test), axis=1)
+    key_box = 'with_box' if use_box else 'without_box'
+    explications = []
     start_time = time()
     for (network_index, network_input), network_output in zip(x_test.iterrows(), y_pred):
         network = {'input': network_input, 'output': network_output}
-        minimal_explication(mdl, layers, bounds, network, use_box)
+        explications.append(minimal_explication(mdl, layers, bounds, network, use_box))
     end_time = time()
-    metrics['explication_times'].append(end_time - start_time)
+    metrics[key_box]['accumulated_time'] += (end_time - start_time)
     mdl.end()
+    return explications

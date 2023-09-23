@@ -27,6 +27,6 @@ if __name__ == '__main__':
         'explication_times': []
     }
     for i in range(10):
-        get_minimal_explication(dataset_name, metrics)
+        get_minimal_explication(dataset_name, metrics, use_box=True)
     avg_explication_time = np.average(metrics['explication_times'])
     logging.info(f'Average time of explication: {avg_explication_time:.2f} seconds.')

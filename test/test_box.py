@@ -3,7 +3,7 @@ import numpy as np
 
 from numpy.testing import assert_array_equal
 
-from src.explications.box import box_relax_input_to_bounds
+from src.explications.box import box_relax_input_to_bounds, box_forward
 
 
 class Layer:
@@ -27,6 +27,38 @@ class TestBox(unittest.TestCase):
             (0.0416666666666666, 0.0416666666666666)
         ))
         assert_array_equal(relaxed_input_bounds, expected_relaxed_input_bounds)
+
+    def test_box_forward_without_relu(self):
+        input_bounds = ((0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0))
+        input_weights = (
+            (0.07841454, -0.872978, 1.2508274, 2.4814022),
+            (-0.8021213, -0.7981068, -0.6652787, 0.03720671),
+            (-0.5349561, -0.9043029, -0.32324892, -0.84925544)
+        )
+        input_biases = (-0.40919042, 0.0, 0.0)
+        output_bounds = box_forward(input_bounds, input_weights, input_biases, apply_relu=False)
+        expected_output_bounds = np.array((
+            (-1.28216842, 3.40145372),
+            (-2.2655068, 0.03720671),
+            (-2.61176336, 0.0)
+        ))
+        assert_array_equal(output_bounds, expected_output_bounds)
+
+    def test_box_forward_with_relu(self):
+        input_bounds = ((0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0))
+        input_weights = (
+            (0.07841454, -0.872978, 1.2508274, 2.4814022),
+            (-0.8021213, -0.7981068, -0.6652787, 0.03720671),
+            (-0.5349561, -0.9043029, -0.32324892, -0.84925544)
+        )
+        input_biases = (-0.40919042, 0.0, 0.0)
+        output_bounds = box_forward(input_bounds, input_weights, input_biases)
+        expected_output_bounds = np.array((
+            (0.0, 3.40145372),
+            (0.0, 0.03720671),
+            (0.0, 0.0)
+        ))
+        assert_array_equal(output_bounds, expected_output_bounds)
 
 
 if __name__ == '__main__':

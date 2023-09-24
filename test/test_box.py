@@ -3,7 +3,7 @@ import numpy as np
 
 from numpy.testing import assert_array_equal
 
-from src.explications.box import box_relax_input_to_bounds, box_forward
+from src.explications.box import box_relax_input_to_bounds, box_forward, box_check_solution
 
 
 class Layer:
@@ -59,6 +59,21 @@ class TestBox(unittest.TestCase):
             (0.0, 0.0)
         ))
         assert_array_equal(output_bounds, expected_output_bounds)
+
+    def test_box_check_solution(self):
+        network_output = 0
+        output_bounds = (
+            (5.100699, 5.100699),
+            (-0.4697151, -0.4697151),
+            (-2.5913954, -2.5913954)
+        )
+        self.assertTrue(box_check_solution(output_bounds, network_output))
+        output_bounds = (
+            (-4.55320543, 5.100699),
+            (-0.4697151, 3.32583163),
+            (-2.5913954, -0.90065571)
+        )
+        self.assertFalse(box_check_solution(output_bounds, network_output))
 
 
 if __name__ == '__main__':

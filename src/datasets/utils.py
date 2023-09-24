@@ -3,7 +3,7 @@ import pandas as pd
 
 from os.path import dirname, exists, join
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
 from src.datasets.iris import iris
 
@@ -35,7 +35,7 @@ def _load_dataset_factory(dataset_name):
 
 
 def _transform(x, columns):
-    x = StandardScaler().fit_transform(x)
+    x = MinMaxScaler().fit_transform(x)
     return pd.DataFrame(x, columns=columns)
 
 

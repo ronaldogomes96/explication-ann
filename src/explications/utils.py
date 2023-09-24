@@ -5,7 +5,7 @@ from docplex.mp.model import Model
 from time import time
 
 from src.datasets.utils import read_all_datasets
-from src.explications.box import box_relax_input_bounds, box_has_solution
+from src.explications.box import box_relax_input_to_bounds, box_has_solution
 from src.explications.milp import get_input_variables_and_bounds, get_intermediate_variables, get_output_variables, \
     get_decision_variables
 from src.explications.tjeng import build_tjeng_network, insert_tjeng_output_constraints
@@ -49,7 +49,7 @@ def minimal_explication(mdl: Model, layers, bounds, network, use_box):
         explication_mask[constraint_index] = False
         if use_box:
             relax_input_mask = ~explication_mask
-            relaxed_input_bounds = box_relax_input_bounds(bounds['input'], network['input'], relax_input_mask)
+            relaxed_input_bounds = box_relax_input_to_bounds(network['input'], bounds['input'], relax_input_mask)
             if box_has_solution(relaxed_input_bounds, layers, network['output']):
                 box_mask[constraint_index] = True
                 continue

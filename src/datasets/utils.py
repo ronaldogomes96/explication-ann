@@ -49,13 +49,15 @@ def is_dataset_prepared(dataset_name):
     return False
 
 
-def read_all_datasets(dataset_name):
+def read_all_datasets(dataset_name, ignore_y=False):
     train_csv_path = _get_dataset_path(dataset_name, 'train.csv')
     validation_csv_path = _get_dataset_path(dataset_name, 'validation.csv')
     test_csv_path = _get_dataset_path(dataset_name, 'test.csv')
     x_train, y_train = _read_dataset(train_csv_path)
     x_val, y_val = _read_dataset(validation_csv_path)
     x_test, y_test = _read_dataset(test_csv_path)
+    if ignore_y:
+        return x_train, x_val, x_test
     return (x_train, y_train), (x_val, y_val), (x_test, y_test)
 
 

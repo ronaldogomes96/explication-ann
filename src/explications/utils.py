@@ -67,7 +67,7 @@ def minimal_explication(mdl: Model, layers, bounds, network, use_box):
 
 
 def get_minimal_explications(dataset_name, metrics, use_box=False):
-    (x_train, _1), (x_val, _2), (x_test, _3) = read_all_datasets(dataset_name)
+    x_train, x_val, x_test = read_all_datasets(dataset_name, ignore_y=True)
     x = pd.concat((x_train, x_val, x_test), ignore_index=True)
     model = load_model(dataset_name)
     layers = model.layers

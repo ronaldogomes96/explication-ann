@@ -5,6 +5,7 @@ from os.path import dirname, exists, join
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 
+from src.datasets.digits import digits
 from src.datasets.iris import iris
 from src.datasets.wine import wine
 
@@ -31,7 +32,9 @@ def _split_dataset(x, y):
 
 
 def _load_dataset_factory(dataset_name):
-    if dataset_name == 'iris':
+    if dataset_name == 'digits':
+        return digits.load_dataset(transform_x_fn=_transform)
+    elif dataset_name == 'iris':
         return iris.load_dataset(transform_x_fn=_transform)
     elif dataset_name == 'wine':
         return wine.load_dataset(transform_x_fn=_transform)

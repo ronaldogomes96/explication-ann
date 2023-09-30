@@ -21,7 +21,7 @@ def create_metrics():
 
 if __name__ == '__main__':
     Path('log').mkdir(exist_ok=True)
-    dataset_names = ('iris', 'wine')
+    dataset_names = ('digits', 'iris', 'wine')
     for dataset_name in dataset_names:
         logging.basicConfig(
             level=logging.INFO,

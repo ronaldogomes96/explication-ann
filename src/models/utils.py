@@ -5,6 +5,7 @@ import platform
 from os.path import dirname, exists, join
 from time import time
 
+from src.models.digits import digits
 from src.models.iris import iris
 from src.models.wine import wine
 
@@ -14,7 +15,9 @@ def _get_model_path(*paths):
 
 
 def _get_params_factory(dataset_name):
-    if dataset_name == 'iris':
+    if dataset_name == 'digits':
+        return digits.get_params()
+    elif dataset_name == 'iris':
         return iris.get_params()
     elif dataset_name == 'wine':
         return wine.get_params()

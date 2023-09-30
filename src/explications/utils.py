@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import logging
 
 from docplex.mp.model import Model
 from time import time
@@ -29,7 +30,11 @@ def build_network(x, layers):
     return mdl, bounds
 
 
-def minimal_explication(mdl: Model, layers, bounds, network, use_box):
+def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output, use_box):
+    if log_output:
+        logging.info('--------------------------------------------------------------------------------')
+        logging.info(f'>>> INPUT\n{network["input"]}')
+        logging.info(f'>>> OUTPUT\n{network["output"]}')
     mdl_clone = mdl.clone(new_name='clone')
     number_features = len(bounds['input'])
     number_outputs = len(bounds['output'])
@@ -52,34 +57,36 @@ def minimal_explication(mdl: Model, layers, bounds, network, use_box):
             relaxed_input_bounds = box_relax_input_to_bounds(network['input'], bounds['input'], relax_input_mask)
             if box_has_solution(relaxed_input_bounds, layers, network['output']):
                 box_mask[constraint_index] = True
+                metrics['with_box']['calls_to_box'] += 1
                 continue
         mdl_clone.solve(log_output=False)
         if mdl_clone.solution is not None:
             mdl_clone.add_constraint(constraint)
             explication_mask[constraint_index] = True
     mdl_clone.end()
-    return {
-        'explication_mask': explication_mask,
-        'box_mask': box_mask
-    } if use_box else {
-        'explication_mask': explication_mask
-    }
+    if log_output:
+        logging.info('>>> EXPLICATION')
+        logging.info(f'- Relevant: {list(network["features"][explication_mask])}')
+        logging.info(f'- Irrelevant: {list(network["features"][~explication_mask])}')
+        if use_box and np.any(box_mask):
+            irrelevant_by_solver = np.bitwise_xor(box_mask, ~explication_mask)
+            logging.info(f'- Irrelevant by box: {list(network["features"][box_mask])}')
+            logging.info(f'- Irrelevant by solver: {list(network["features"][irrelevant_by_solver])}')
 
 
-def get_minimal_explications(dataset_name, metrics, use_box=False):
+def minimal_explications(dataset_name, metrics, log_output=False, use_box=False):
     x_train, x_val, x_test = read_all_datasets(dataset_name, ignore_y=True)
     x = pd.concat((x_train, x_val, x_test), ignore_index=True)
+    features = x.columns
     model = load_model(dataset_name)
-    layers = model.layers
-    mdl, bounds = build_network(x, layers)
     y_pred = np.argmax(model.predict(x_test), axis=1)
     key_box = 'with_box' if use_box else 'without_box'
-    explications = []
+    layers = model.layers
+    mdl, bounds = build_network(x, layers)
     start_time = time()
     for (network_index, network_input), network_output in zip(x_test.iterrows(), y_pred):
-        network = {'input': network_input, 'output': network_output}
-        explications.append(minimal_explication(mdl, layers, bounds, network, use_box))
+        network = {'input': network_input, 'output': network_output, 'features': features}
+        minimal_explication(mdl, layers, bounds, network, metrics, log_output, use_box)
     end_time = time()
-    metrics[key_box]['accumulated_time'] += (end_time - start_time)
     mdl.end()
-    return explications
+    metrics[key_box]['accumulated_time'] += (end_time - start_time)

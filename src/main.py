@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 
 from src.datasets.utils import is_dataset_prepared, prepare_and_save_dataset, read_all_datasets
-from src.explications.utils import get_minimal_explications
+from src.explications.utils import minimal_explications
 from src.models.utils import eval, train, is_model_trained
 
 
@@ -11,33 +11,12 @@ def create_metrics():
     return {
         'with_box': {
             'accumulated_time': 0,
-            'average_time': 0.0
+            'calls_to_box': 0
         },
         'without_box': {
-            'accumulated_time': 0,
-            'average_time': 0.0
+            'accumulated_time': 0
         }
     }
-
-
-def log_metrics(dataset_name, x_test, y_test, metrics):
-    columns = x_test.columns
-    logging.info(f'EXPLICATIONS FOR DATASET {dataset_name.upper()}')
-    box_explications = metrics['with_box']['explications']
-    explications = metrics['without_box']['explications']
-    for (x_index, x), y, box_explication, explication in zip(x_test.iterrows(), y_test, box_explications, explications):
-        logging.info('--------------------------------------------------------------------------------')
-        logging.info(f'>>> INPUT {x_index}\n{x}')
-        logging.info(f'>>> OUTPUT\n{y}')
-        logging.info('>>> EXPLICATIONS WITH BOX')
-        logging.info(f'- Relevant: {list(columns[box_explication["explication_mask"]])}')
-        logging.info(f'- Irrelevant by box: {list(columns[box_explication["box_mask"]])}')
-        logging.info('>>> EXPLICATIONS WITHOUT BOX')
-        logging.info(f'- Relevant: {list(columns[explication["explication_mask"]])}')
-    logging.info('--------------------------------------------------------------------------------')
-    logging.info('METRICS')
-    logging.info(f'- Average time with box: {metrics["with_box"]["average_time"]:.2f} seconds.')
-    logging.info(f'- Average time without box: {metrics["without_box"]["average_time"]:.2f} seconds.')
 
 
 if __name__ == '__main__':
@@ -58,9 +37,23 @@ if __name__ == '__main__':
     eval(dataset_name, x_test, y_test)
     metrics = create_metrics()
     number_executions = 10
-    for i in range(number_executions):
-        metrics['with_box']['explications'] = get_minimal_explications(dataset_name, metrics, use_box=True)
-        metrics['without_box']['explications'] = get_minimal_explications(dataset_name, metrics)
-    metrics['with_box']['average_time'] = metrics['with_box']['accumulated_time'] / number_executions
-    metrics['without_box']['average_time'] = metrics['without_box']['accumulated_time'] / number_executions
-    log_metrics(dataset_name, x_test, y_test, metrics)
+    logging.info('--------------------------------------------------------------------------------')
+    logging.info(f'EXPLICATIONS FOR DATASET {dataset_name.upper()} WITH BOX')
+    for execution in range(number_executions):
+        log_output = not execution
+        minimal_explications(dataset_name, metrics, log_output, use_box=True)
+    logging.info('--------------------------------------------------------------------------------')
+    logging.info(f'EXPLICATIONS FOR DATASET {dataset_name.upper()} WITHOUT BOX')
+    for execution in range(number_executions):
+        log_output = not execution
+        minimal_explications(dataset_name, metrics, log_output)
+    average_time_with_box = metrics['with_box']['accumulated_time'] / number_executions
+    average_time_without_box = metrics['without_box']['accumulated_time'] / number_executions
+    percentage_calls_to_box = metrics['with_box']['calls_to_box'] / (x_test.size * number_executions)
+    percentage_calls_to_solver = 1 - percentage_calls_to_box
+    logging.info('--------------------------------------------------------------------------------')
+    logging.info('METRICS')
+    logging.info(f'- Average time with box: {average_time_with_box:.2f} seconds.')
+    logging.info(f'  > Calls to box: {percentage_calls_to_box * 100:.2f}%')
+    logging.info(f'  > Calls to solver: {percentage_calls_to_solver * 100:.2f}%')
+    logging.info(f'- Average time without box: {average_time_without_box:.2f} seconds.')

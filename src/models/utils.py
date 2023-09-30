@@ -1,5 +1,6 @@
 import logging
 import tensorflow as tf
+import platform
 
 from os.path import dirname, exists, join
 from time import time
@@ -55,7 +56,8 @@ def train(dataset_name, x_train, y_train, x_val, y_val):
     for _ in range(n_layers - 2):
         model.add(tf.keras.layers.Dense(n_neurons, activation=tf.keras.activations.relu))
     model.add(tf.keras.layers.Dense(n_neurons, activation=tf.keras.activations.softmax))
-    optimizer = tf.keras.optimizers.Adam()
+    optimizer = tf.keras.optimizers.legacy.Adam() if platform.system() == 'Darwin' \
+        else tf.keras.optimizers.Adam()
     loss = tf.keras.losses.SparseCategoricalCrossentropy()
     metrics = (tf.keras.metrics.SparseCategoricalAccuracy(),)
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)

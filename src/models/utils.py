@@ -50,12 +50,13 @@ def train(dataset_name, x_train, y_train, x_val, y_val):
     n_layers = params['n_layers']
     n_neurons = params['n_neurons']
     n_epochs = params['n_epochs']
+    n_classes = params['n_classes']
     batch_size = params['batch_size']
     model = tf.keras.models.Sequential()
     model.add(tf.keras.layers.Dense(n_neurons, input_shape=input_shape, activation=tf.keras.activations.relu))
     for _ in range(n_layers - 2):
         model.add(tf.keras.layers.Dense(n_neurons, activation=tf.keras.activations.relu))
-    model.add(tf.keras.layers.Dense(n_neurons, activation=tf.keras.activations.softmax))
+    model.add(tf.keras.layers.Dense(n_classes, activation=tf.keras.activations.softmax))
     optimizer = tf.keras.optimizers.legacy.Adam() if platform.system() == 'Darwin' \
         else tf.keras.optimizers.Adam()
     loss = tf.keras.losses.SparseCategoricalCrossentropy()

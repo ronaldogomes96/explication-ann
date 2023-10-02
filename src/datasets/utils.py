@@ -7,6 +7,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 from src.datasets.digits import digits
 from src.datasets.iris import iris
+from src.datasets.sonar import sonar
 from src.datasets.wine import wine
 
 
@@ -36,6 +37,8 @@ def _load_dataset_factory(dataset_name):
         return digits.load_dataset(transform_x_fn=_transform)
     elif dataset_name == 'iris':
         return iris.load_dataset(transform_x_fn=_transform)
+    elif dataset_name == 'sonar':
+        return sonar.load_dataset(transform_x_fn=_transform)
     elif dataset_name == 'wine':
         return wine.load_dataset(transform_x_fn=_transform)
 

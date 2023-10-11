@@ -7,6 +7,7 @@ from time import time
 
 from src.models.digits import digits
 from src.models.iris import iris
+from src.models.mnist import mnist
 from src.models.sonar import sonar
 from src.models.wine import wine
 
@@ -20,6 +21,8 @@ def _get_params_factory(dataset_name):
         return digits.get_params()
     elif dataset_name == 'iris':
         return iris.get_params()
+    elif dataset_name == 'mnist':
+        return mnist.get_params()
     elif dataset_name == 'sonar':
         return sonar.get_params()
     elif dataset_name == 'wine':

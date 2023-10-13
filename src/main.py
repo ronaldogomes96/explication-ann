@@ -11,6 +11,7 @@ def create_metrics():
     return {
         'with_box': {
             'accumulated_time': 0,
+            'accumulated_box_time': 0,
             'calls_to_box': 0
         },
         'without_box': {
@@ -51,11 +52,13 @@ if __name__ == '__main__':
             minimal_explications(dataset_name, metrics, log_output)
         average_time_with_box = metrics['with_box']['accumulated_time'] / number_executions
         average_time_without_box = metrics['without_box']['accumulated_time'] / number_executions
+        average_box_time = metrics['with_box']['accumulated_box_time'] / number_executions
         percentage_calls_to_box = metrics['with_box']['calls_to_box'] / (x_test.size * number_executions)
         percentage_calls_to_solver = 1 - percentage_calls_to_box
         logging.info('--------------------------------------------------------------------------------')
         logging.info('METRICS')
-        logging.info(f'- Average time with box: {average_time_with_box:.2f} seconds.')
+        logging.info(f'- Average time with box: {average_time_with_box:.4f} seconds.')
+        logging.info(f'  > Average time spent on box: {average_box_time:.4f} seconds')
         logging.info(f'  > Calls to box: {percentage_calls_to_box * 100:.2f}%')
         logging.info(f'  > Calls to solver: {percentage_calls_to_solver * 100:.2f}%')
-        logging.info(f'- Average time without box: {average_time_without_box:.2f} seconds.')
+        logging.info(f'- Average time without box: {average_time_without_box:.4f} seconds.')

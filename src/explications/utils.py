@@ -53,9 +53,12 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
         mdl_clone.remove_constraint(constraint)
         explication_mask[constraint_index] = False
         if use_box:
+            start_time = time()
             relax_input_mask = ~explication_mask
             relaxed_input_bounds = box_relax_input_to_bounds(network['input'], bounds['input'], relax_input_mask)
-            if box_has_solution(relaxed_input_bounds, layers, network['output']):
+            has_solution = box_has_solution(relaxed_input_bounds, layers, network['output'])
+            metrics['with_box']['accumulated_box_time'] += (time() - start_time)
+            if has_solution:
                 box_mask[constraint_index] = True
                 metrics['with_box']['calls_to_box'] += 1
                 continue
@@ -82,11 +85,10 @@ def minimal_explications(dataset_name, metrics, log_output=False, use_box=False)
     y_pred = np.argmax(model.predict(x_test), axis=1)
     key_box = 'with_box' if use_box else 'without_box'
     layers = model.layers
-    mdl, bounds = build_network(x, layers)
     start_time = time()
+    mdl, bounds = build_network(x, layers)
     for (network_index, network_input), network_output in zip(x_test.iterrows(), y_pred):
         network = {'input': network_input, 'output': network_output, 'features': features}
         minimal_explication(mdl, layers, bounds, network, metrics, log_output, use_box)
-    end_time = time()
+    metrics[key_box]['accumulated_time'] += (time() - start_time)
     mdl.end()
-    metrics[key_box]['accumulated_time'] += (end_time - start_time)

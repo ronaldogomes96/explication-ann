@@ -4,7 +4,7 @@ from pathlib import Path
 
 from src.datasets.utils import is_dataset_prepared, prepare_and_save_dataset, read_all_datasets
 from src.explications.utils import minimal_explications
-from src.models.utils import eval, train, is_model_trained
+from src.models.utils import evaluate, is_model_trained, load_model, train
 
 
 def create_metrics():
@@ -37,7 +37,8 @@ if __name__ == '__main__':
         (x_train, y_train), (x_val, y_val), (x_test, y_test) = read_all_datasets(dataset_name)
         if not is_model_trained(dataset_name):
             train(dataset_name, x_train, y_train, x_val, y_val)
-        eval(dataset_name, x_test, y_test)
+        model = load_model(dataset_name)
+        evaluate(model, x_test, y_test)
         metrics = create_metrics()
         number_executions = 10
         logging.info('--------------------------------------------------------------------------------')

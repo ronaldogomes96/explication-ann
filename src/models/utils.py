@@ -36,13 +36,13 @@ def is_model_trained(dataset_name):
     return False
 
 
-def load_model(dataset_name):
+def load_model(dataset_name) -> tf.keras.models.Sequential:
     model_path = _get_model_path(dataset_name, f'{dataset_name}.h5')
     return tf.keras.models.load_model(model_path)
 
 
-def eval(dataset_name, x_test, y_test):
-    model = load_model(dataset_name)
+def evaluate(model: tf.keras.models.Sequential, x_test, y_test):
+    dataset_name = model.name
     batch_size = _get_params_factory(dataset_name)['batch_size']
     logging.info(f'Starting to evaluate the dataset {dataset_name}...')
     start_time = time()
@@ -61,7 +61,7 @@ def train(dataset_name, x_train, y_train, x_val, y_val):
     n_epochs = params['n_epochs']
     n_classes = params['n_classes']
     batch_size = params['batch_size']
-    model = tf.keras.models.Sequential()
+    model = tf.keras.models.Sequential(name=dataset_name)
     model.add(tf.keras.layers.Dense(n_neurons, input_shape=input_shape, activation=tf.keras.activations.relu))
     for _ in range(n_layers - 2):
         model.add(tf.keras.layers.Dense(n_neurons, activation=tf.keras.activations.relu))

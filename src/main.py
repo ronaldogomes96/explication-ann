@@ -66,8 +66,8 @@ if __name__ == '__main__':
         percentage_calls_to_solver = 1 - percentage_calls_to_box
         logging.info('--------------------------------------------------------------------------------')
         logging.info('METRICS')
-        logging.info(f'- Average time with box: {average_time_with_box:.4f} seconds.')
-        logging.info(f'  > Average time spent on box: {average_box_time:.4f} seconds')
-        logging.info(f'  > Calls to box: {percentage_calls_to_box * 100:.2f}%')
-        logging.info(f'  > Calls to solver: {percentage_calls_to_solver * 100:.2f}%')
-        logging.info(f'- Average time without box: {average_time_without_box:.4f} seconds.')
+        logging.info(f'Average time with box: {average_time_with_box:.4f} seconds.')
+        logging.info(f'> Average time spent on box: {average_box_time:.4f} seconds')
+        logging.info(f'> Calls to box: {percentage_calls_to_box * 100:.2f}%')
+        logging.info(f'> Calls to solver: {percentage_calls_to_solver * 100:.2f}%')
+        logging.info(f'Average time without box: {average_time_without_box:.4f} seconds.')

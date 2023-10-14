@@ -25,9 +25,16 @@ def create_metrics():
 
 if __name__ == '__main__':
     Path('log').mkdir(exist_ok=True)
-    dataset_names = ('digits', 'iris', 'mnist', 'sonar', 'wine')
-    for dataset_name in dataset_names:
+    datasets = [
+        {'name': 'digits'},
+        {'name': 'iris'},
+        {'name': 'mnist', 'limit': 10},
+        {'name': 'sonar'},
+        {'name': 'wine'},
+    ]
+    for dataset in datasets:
         tf.keras.backend.clear_session()
+        dataset_name = dataset['name']
         logging.basicConfig(
             level=logging.INFO,
             filename=f'log/{dataset_name}.log',
@@ -45,6 +52,8 @@ if __name__ == '__main__':
         x = pd.concat((x_train, x_val, x_test), ignore_index=True)
         layers = model.layers
         metrics = create_metrics()
+        if 'limit' in dataset:
+            x_test = x_test.head(dataset['limit'])
         y_pred = np.argmax(model.predict(x_test), axis=1)
         mdl, bounds = build_network(dataset_name, x, layers)
         number_executions = 10

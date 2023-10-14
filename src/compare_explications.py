@@ -10,7 +10,7 @@ def extract_explication(line):
 
 
 if __name__ == '__main__':
-    dataset_names = ('digits', 'iris', 'sonar', 'wine')
+    dataset_names = ('digits', 'iris', 'mnist', 'sonar', 'wine')
     for dataset_name in dataset_names:
         log_path = join(dirname(__file__), 'log', f'{dataset_name}.log')
         with open(log_path) as f:

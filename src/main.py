@@ -1,10 +1,12 @@
 import logging
+import numpy as np
+import pandas as pd
 import tensorflow as tf
 
 from pathlib import Path
 
 from src.datasets.utils import is_dataset_prepared, prepare_and_save_dataset, read_all_datasets
-from src.explications.utils import minimal_explications
+from src.explications.utils import build_network, minimal_explications
 from src.models.utils import evaluate, is_model_trained, load_model, train
 
 
@@ -40,18 +42,23 @@ if __name__ == '__main__':
         model = load_model(dataset_name) if is_model_trained(dataset_name) \
             else train(dataset_name, x_train, y_train, x_val, y_val)
         evaluate(model, x_test, y_test)
+        x = pd.concat((x_train, x_val, x_test), ignore_index=True)
+        layers = model.layers
         metrics = create_metrics()
+        y_pred = np.argmax(model.predict(x_test), axis=1)
+        mdl, bounds = build_network(x, layers)
         number_executions = 10
         logging.info('--------------------------------------------------------------------------------')
         logging.info(f'EXPLICATIONS FOR DATASET {dataset_name.upper()} WITH BOX')
         for execution in range(number_executions):
             log_output = not execution
-            minimal_explications(dataset_name, metrics, log_output, use_box=True)
+            minimal_explications(mdl, bounds, layers, x_test, y_pred, metrics, log_output, use_box=True)
         logging.info('--------------------------------------------------------------------------------')
         logging.info(f'EXPLICATIONS FOR DATASET {dataset_name.upper()} WITHOUT BOX')
         for execution in range(number_executions):
             log_output = not execution
-            minimal_explications(dataset_name, metrics, log_output)
+            minimal_explications(mdl, bounds, layers, x_test, y_pred, metrics, log_output)
+        mdl.end()
         average_time_with_box = metrics['with_box']['accumulated_time'] / number_executions
         average_time_without_box = metrics['without_box']['accumulated_time'] / number_executions
         average_box_time = metrics['with_box']['accumulated_box_time'] / number_executions

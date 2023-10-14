@@ -1,16 +1,13 @@
 import numpy as np
-import pandas as pd
 import logging
 
 from docplex.mp.model import Model
 from time import time
 
-from src.datasets.utils import read_all_datasets
 from src.explications.box import box_relax_input_to_bounds, box_has_solution
 from src.explications.milp import get_input_variables_and_bounds, get_intermediate_variables, get_output_variables, \
     get_decision_variables
 from src.explications.tjeng import build_tjeng_network, insert_tjeng_output_constraints
-from src.models.utils import load_model
 
 
 def build_network(x, layers):
@@ -77,18 +74,11 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
             logging.info(f'- Irrelevant by solver: {list(network["features"][irrelevant_by_solver])}')
 
 
-def minimal_explications(dataset_name, metrics, log_output=False, use_box=False):
-    x_train, x_val, x_test = read_all_datasets(dataset_name, ignore_y=True)
-    x = pd.concat((x_train, x_val, x_test), ignore_index=True)
-    features = x.columns
-    model = load_model(dataset_name)
-    y_pred = np.argmax(model.predict(x_test), axis=1)
+def minimal_explications(mdl: Model, bounds, layers, x_test, y_pred, metrics, log_output=False, use_box=False):
+    features = x_test.columns
     key_box = 'with_box' if use_box else 'without_box'
-    layers = model.layers
     start_time = time()
-    mdl, bounds = build_network(x, layers)
     for (network_index, network_input), network_output in zip(x_test.iterrows(), y_pred):
         network = {'input': network_input, 'output': network_output, 'features': features}
         minimal_explication(mdl, layers, bounds, network, metrics, log_output, use_box)
     metrics[key_box]['accumulated_time'] += (time() - start_time)
-    mdl.end()

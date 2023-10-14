@@ -1,4 +1,5 @@
 import logging
+import tensorflow as tf
 
 from pathlib import Path
 
@@ -22,8 +23,9 @@ def create_metrics():
 
 if __name__ == '__main__':
     Path('log').mkdir(exist_ok=True)
-    dataset_names = ('digits', 'iris', 'wine')
+    dataset_names = ('digits', 'iris', 'mnist', 'sonar', 'wine')
     for dataset_name in dataset_names:
+        tf.keras.backend.clear_session()
         logging.basicConfig(
             level=logging.INFO,
             filename=f'log/{dataset_name}.log',
@@ -35,9 +37,8 @@ if __name__ == '__main__':
         if not is_dataset_prepared(dataset_name):
             prepare_and_save_dataset(dataset_name)
         (x_train, y_train), (x_val, y_val), (x_test, y_test) = read_all_datasets(dataset_name)
-        if not is_model_trained(dataset_name):
-            train(dataset_name, x_train, y_train, x_val, y_val)
-        model = load_model(dataset_name)
+        model = load_model(dataset_name) if is_model_trained(dataset_name) \
+            else train(dataset_name, x_train, y_train, x_val, y_val)
         evaluate(model, x_test, y_test)
         metrics = create_metrics()
         number_executions = 10

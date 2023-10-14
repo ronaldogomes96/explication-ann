@@ -56,7 +56,7 @@ if __name__ == '__main__':
             x_test = x_test.head(dataset['limit'])
         y_pred = np.argmax(model.predict(x_test), axis=1)
         mdl, bounds = build_network(dataset_name, x, layers)
-        number_executions = 10
+        number_executions = 5
         logging.info('--------------------------------------------------------------------------------')
         logging.info(f'EXPLICATIONS FOR DATASET {dataset_name.upper()} WITH BOX')
         for execution in range(number_executions):

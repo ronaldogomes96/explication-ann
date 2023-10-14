@@ -46,7 +46,7 @@ if __name__ == '__main__':
         layers = model.layers
         metrics = create_metrics()
         y_pred = np.argmax(model.predict(x_test), axis=1)
-        mdl, bounds = build_network(x, layers)
+        mdl, bounds = build_network(dataset_name, x, layers)
         number_executions = 10
         logging.info('--------------------------------------------------------------------------------')
         logging.info(f'EXPLICATIONS FOR DATASET {dataset_name.upper()} WITH BOX')

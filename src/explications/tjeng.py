@@ -5,7 +5,7 @@ from docplex.mp.model import Model
 from src.explications.milp import maximize, minimize
 
 
-def build_tjeng_network(mdl: Model, layers, variables):
+def build_tjeng_network(mdl: Model, layers, variables, metrics):
     output_bounds = []
     last_layer = layers[-1]
     for layer_index, layer in enumerate(layers):
@@ -19,18 +19,21 @@ def build_tjeng_network(mdl: Model, layers, variables):
             upper_bound = maximize(mdl, result)
             if upper_bound <= 0 and layer != last_layer:
                 mdl.add_constraint(y == 0, ctname=f'c_{layer_index}_{neuron_index}')
+                metrics['constraints'] += 1
                 continue
             lower_bound = minimize(mdl, result)
             if lower_bound >= 0 and layer != last_layer:
                 mdl.add_constraint(y == result, ctname=f'c_{layer_index}_{neuron_index}')
+                metrics['constraints'] += 1
                 continue
             if layer != last_layer:
-
                 mdl.add_constraint(y <= result - lower_bound * (1 - z))
                 mdl.add_constraint(y >= result)
                 mdl.add_constraint(y <= upper_bound * z)
+                metrics['constraints'] += 3
             else:
                 mdl.add_constraint(y == result)
+                metrics['constraints'] += 1
                 output_bounds.append((lower_bound, upper_bound))
     return output_bounds
 

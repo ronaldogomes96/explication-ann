@@ -10,22 +10,28 @@ from src.explications.milp import get_input_variables_and_bounds, get_intermedia
 from src.explications.tjeng import build_tjeng_network, insert_tjeng_output_constraints
 
 
-def build_network(dataset_name, x, layers):
+def build_network(dataset_name, x, layers, metrics):
     logging.info(f'Creating MILP model for the dataset {dataset_name}...')
     start_time = time()
     mdl = Model(name='original')
     variables = {'decision': [], 'intermediate': []}
     bounds = {}
-    variables['input'], bounds['input'] = get_input_variables_and_bounds(mdl, x)
+    variables['input'], bounds['input'] = get_input_variables_and_bounds(mdl, x, metrics)
     last_layer = layers[-1]
     for layer_index, layer in enumerate(layers):
         number_variables = layer.get_weights()[0].shape[1]
+        metrics['continuous_vars'] += number_variables
         if layer == last_layer:
             variables['output'] = get_output_variables(mdl, number_variables)
             break
         variables['intermediate'].append(get_intermediate_variables(mdl, layer_index, number_variables))
         variables['decision'].append(get_decision_variables(mdl, layer_index, number_variables))
-    bounds['output'] = build_tjeng_network(mdl, layers, variables)
+        metrics['binary_vars'] += number_variables
+    bounds['output'] = build_tjeng_network(mdl, layers, variables, metrics)
+    # add metrics of insert_tjeng_output_constraints
+    metrics['constraints'] += len(variables['input'])       # input constraints
+    metrics['binary_vars'] += len(variables['output']) - 1  # q
+    metrics['constraints'] += len(variables['output'])      # sum of q variables and q constraints
     logging.info(f'Time of MILP model creation: {time() - start_time:.4f} seconds.')
     return mdl, bounds
 

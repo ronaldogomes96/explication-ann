@@ -19,7 +19,10 @@ def create_metrics():
         },
         'without_box': {
             'accumulated_time': 0
-        }
+        },
+        'continuous_vars': 0,
+        'binary_vars': 0,
+        'constraints': 0
     }
 
 
@@ -55,7 +58,7 @@ if __name__ == '__main__':
         if 'limit' in dataset:
             x_test = x_test.head(dataset['limit'])
         y_pred = np.argmax(model.predict(x_test), axis=1)
-        mdl, bounds = build_network(dataset_name, x, layers)
+        mdl, bounds = build_network(dataset_name, x, layers, metrics)
         number_executions = 5
         logging.info('--------------------------------------------------------------------------------')
         logging.info(f'EXPLICATIONS FOR DATASET {dataset_name.upper()} WITH BOX')
@@ -80,3 +83,7 @@ if __name__ == '__main__':
         logging.info(f'> Calls to box: {percentage_calls_to_box * 100:.2f}%')
         logging.info(f'> Calls to solver: {percentage_calls_to_solver * 100:.2f}%')
         logging.info(f'Average time without box: {average_time_without_box:.4f} seconds.')
+        logging.info('COUNTERS')
+        logging.info(f'Number of binary variables: {metrics["binary_vars"]}.')
+        logging.info(f'Number of continuous variables: {metrics["continuous_vars"]}.')
+        logging.info(f'Number of constraints: {metrics["constraints"]}.')

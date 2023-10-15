@@ -1,9 +1,7 @@
-import numpy as np
-
 from docplex.mp.model import Model
 
 
-def get_input_variables_and_bounds(mdl: Model, x):
+def get_input_variables_and_bounds(mdl: Model, x, metrics):
     input_variables = []
     input_bounds = []
     for column_index, column in enumerate(x.columns):
@@ -12,10 +10,10 @@ def get_input_variables_and_bounds(mdl: Model, x):
         name = f'x_{column_index}'
         if len(unique_values) == 2:
             input_variables.append(mdl.binary_var(name=name))
-        elif np.any(unique_values.astype('int64') != unique_values.astype('float64')):
-            input_variables.append(mdl.continuous_var(lb=lower_bound, ub=upper_bound, name=name))
+            metrics['binary_vars'] += 1
         else:
-            input_variables.append(mdl.integer_var(lb=lower_bound, ub=upper_bound, name=name))
+            input_variables.append(mdl.continuous_var(lb=lower_bound, ub=upper_bound, name=name))
+            metrics['continuous_vars'] += 1
         input_bounds.append((lower_bound, upper_bound))
     return input_variables, input_bounds
 

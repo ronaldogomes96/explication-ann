@@ -7,24 +7,8 @@ from pathlib import Path
 
 from src.datasets.utils import is_dataset_prepared, prepare_and_save_dataset, read_all_datasets
 from src.explications.utils import build_network, minimal_explications
+from src.metrics.utils import create_metrics, log_metrics, prepare_metrics
 from src.models.utils import evaluate, is_model_trained, load_model, train
-
-
-def create_metrics(dataset_name):
-    return {
-        'dataset_name': dataset_name,
-        'with_box': {
-            'accumulated_time': 0,
-            'accumulated_box_time': 0,
-            'calls_to_box': 0
-        },
-        'without_box': {
-            'accumulated_time': 0
-        },
-        'continuous_vars': 0,
-        'binary_vars': 0,
-        'constraints': 0
-    }
 
 
 if __name__ == '__main__':
@@ -72,19 +56,5 @@ if __name__ == '__main__':
             log_output = not execution
             minimal_explications(mdl, bounds, layers, x_test, y_pred, metrics, log_output)
         mdl.end()
-        average_time_with_box = metrics['with_box']['accumulated_time'] / number_executions
-        average_time_without_box = metrics['without_box']['accumulated_time'] / number_executions
-        average_box_time = metrics['with_box']['accumulated_box_time'] / number_executions
-        percentage_calls_to_box = metrics['with_box']['calls_to_box'] / (x_test.size * number_executions)
-        percentage_calls_to_solver = 1 - percentage_calls_to_box
-        logging.info('--------------------------------------------------------------------------------')
-        logging.info('METRICS')
-        logging.info(f'Average time with box: {average_time_with_box:.4f} seconds.')
-        logging.info(f'> Average time spent on box: {average_box_time:.4f} seconds')
-        logging.info(f'> Calls to box: {percentage_calls_to_box * 100:.2f}%')
-        logging.info(f'> Calls to solver: {percentage_calls_to_solver * 100:.2f}%')
-        logging.info(f'Average time without box: {average_time_without_box:.4f} seconds.')
-        logging.info('COUNTERS')
-        logging.info(f'Number of binary variables: {metrics["binary_vars"]}.')
-        logging.info(f'Number of continuous variables: {metrics["continuous_vars"]}.')
-        logging.info(f'Number of constraints: {metrics["constraints"]}.')
+        final_metrics = prepare_metrics(metrics, number_executions, len(x_test.columns), len(x_test))
+        log_metrics(final_metrics)

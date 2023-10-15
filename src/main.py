@@ -10,8 +10,9 @@ from src.explications.utils import build_network, minimal_explications
 from src.models.utils import evaluate, is_model_trained, load_model, train
 
 
-def create_metrics():
+def create_metrics(dataset_name):
     return {
+        'dataset_name': dataset_name,
         'with_box': {
             'accumulated_time': 0,
             'accumulated_box_time': 0,
@@ -54,11 +55,11 @@ if __name__ == '__main__':
         evaluate(model, x_test, y_test)
         x = pd.concat((x_train, x_val, x_test), ignore_index=True)
         layers = model.layers
-        metrics = create_metrics()
+        metrics = create_metrics(dataset_name)
         if 'limit' in dataset:
             x_test = x_test.head(dataset['limit'])
         y_pred = np.argmax(model.predict(x_test), axis=1)
-        mdl, bounds = build_network(dataset_name, x, layers, metrics)
+        mdl, bounds = build_network(x, layers, metrics)
         number_executions = 5
         logging.info('--------------------------------------------------------------------------------')
         logging.info(f'EXPLICATIONS FOR DATASET {dataset_name.upper()} WITH BOX')

@@ -10,8 +10,8 @@ from src.explications.milp import get_input_variables_and_bounds, get_intermedia
 from src.explications.tjeng import build_tjeng_network, insert_tjeng_output_constraints
 
 
-def build_network(dataset_name, x, layers, metrics):
-    logging.info(f'Creating MILP model for the dataset {dataset_name}...')
+def build_network(x, layers, metrics):
+    logging.info(f'Creating MILP model for the dataset {metrics["dataset_name"]}...')
     start_time = time()
     mdl = Model(name='original')
     variables = {'decision': [], 'intermediate': []}

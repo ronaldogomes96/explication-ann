@@ -29,7 +29,7 @@ if __name__ == '__main__':
             filename=f'log/{dataset_name}.log',
             filemode='w',
             encoding='utf-8',
-            format='%(asctime)s - %(levelname)s - %(message)s',
+            format='[ %(asctime)s - %(levelname)s ] %(message)s',
             force=True
         )
         if not is_dataset_prepared(dataset_name):

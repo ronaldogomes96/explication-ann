@@ -4,7 +4,7 @@ from os.path import dirname, join
 
 
 def extract_explication(line):
-    regex = r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3} - INFO - - Relevant: (\[.+\])'
+    regex = r'\[ \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3} - INFO \] - Relevant: (\[.+\])'
     result = re.search(regex, line)
     return result.group(1)
 

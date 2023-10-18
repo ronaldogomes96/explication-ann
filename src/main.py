@@ -1,9 +1,11 @@
 import logging
+import os
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 
 from pathlib import Path
+from dotenv import load_dotenv
 
 from src.datasets.utils import is_dataset_prepared, prepare_and_save_dataset, read_all_datasets
 from src.explications.utils import build_network, minimal_explications
@@ -11,15 +13,20 @@ from src.metrics.utils import create_metrics, log_metrics, prepare_metrics
 from src.models.utils import evaluate, is_model_trained, load_model, train
 
 
+def load_datasets_from_env():
+    def fn(dataset):
+        if ':' in dataset:
+            name, limit = dataset.split(':')
+            return {'name': name, 'limit': int(limit)}
+        return {'name': dataset}
+    datasets = os.getenv('DATASETS').split(',')
+    return tuple(map(fn, datasets))
+
+
 if __name__ == '__main__':
     Path('log').mkdir(exist_ok=True)
-    datasets = (
-        {'name': 'digits'},
-        {'name': 'iris'},
-        {'name': 'mnist', 'limit': 10},
-        {'name': 'sonar'},
-        {'name': 'wine'},
-    )
+    load_dotenv()
+    datasets = load_datasets_from_env()
     percentage_progress = 0
     for dataset_index, dataset in enumerate(datasets):
         tf.keras.backend.clear_session()
@@ -45,7 +52,7 @@ if __name__ == '__main__':
             x_test = x_test.head(dataset['limit'])
         y_pred = np.argmax(model.predict(x_test), axis=1)
         mdl, bounds = build_network(x, layers, metrics)
-        number_executions = 5
+        number_executions = int(os.getenv('EXECUTIONS'))
         step = 1 / (2 * number_executions * len(datasets))
         logging.info('--------------------------------------------------------------------------------')
         logging.info(f'EXPLICATIONS FOR DATASET {dataset_name.upper()} WITH BOX')

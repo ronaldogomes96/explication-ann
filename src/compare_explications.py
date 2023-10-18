@@ -1,6 +1,13 @@
 import re
+import os
 
+from dotenv import load_dotenv
 from os.path import dirname, join
+
+
+def load_datasets_from_env():
+    datasets = os.getenv('DATASETS').split(',')
+    return tuple(map(lambda dataset: dataset.split(':')[0] if ':' in dataset else dataset, datasets))
 
 
 def extract_explication(line):
@@ -10,7 +17,8 @@ def extract_explication(line):
 
 
 if __name__ == '__main__':
-    dataset_names = ('digits', 'iris', 'mnist', 'sonar', 'wine')
+    load_dotenv()
+    dataset_names = load_datasets_from_env()
     for dataset_name in dataset_names:
         log_path = join(dirname(__file__), 'log', f'{dataset_name}.log')
         with open(log_path) as f:

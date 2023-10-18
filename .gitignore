@@ -3,6 +3,7 @@
 
 # pycharm
 .idea
+.env
 
 # python
 __pycache__

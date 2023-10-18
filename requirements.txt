@@ -4,3 +4,4 @@ tensorflow==2.14.0
 cplex==22.1.1.0
 docplex==2.25.236
 numpy==1.24.3
+python-dotenv==1.0.0

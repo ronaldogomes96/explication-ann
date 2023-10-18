@@ -1,3 +1,5 @@
+import numpy as np
+
 from docplex.mp.model import Model
 
 
@@ -15,7 +17,7 @@ def get_input_variables_and_bounds(mdl: Model, x, metrics):
             input_variables.append(mdl.continuous_var(lb=lower_bound, ub=upper_bound, name=name))
             metrics['continuous_vars'] += 1
         input_bounds.append((lower_bound, upper_bound))
-    return input_variables, input_bounds
+    return input_variables, np.array(input_bounds)
 
 
 def get_intermediate_variables(mdl: Model, layer_index, number_neurons):

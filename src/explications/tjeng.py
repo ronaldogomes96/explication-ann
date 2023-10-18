@@ -35,7 +35,7 @@ def build_tjeng_network(mdl: Model, layers, variables, metrics):
                 mdl.add_constraint(y == result)
                 metrics['constraints'] += 1
                 output_bounds.append((lower_bound, upper_bound))
-    return output_bounds
+    return np.array(output_bounds)
 
 
 def insert_tjeng_output_constraints(mdl: Model, output_bounds, variables, network_output):

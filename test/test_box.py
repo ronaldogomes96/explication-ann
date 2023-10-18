@@ -17,8 +17,8 @@ class Layer:
 class TestBox(unittest.TestCase):
     def test_box_relax_input_to_bounds(self):
         network_input = (0.2222222222222221, 0.625, 0.0677966101694915, 0.0416666666666666)
-        input_bounds = ((0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0))
-        relax_input_mask = (True, False, True, False)
+        input_bounds = np.array(((0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0)))
+        relax_input_mask = np.array((True, False, True, False))
         relaxed_input_bounds = box_relax_input_to_bounds(network_input, input_bounds, relax_input_mask)
         expected_relaxed_input_bounds = np.array((
             (0.0, 1.0),

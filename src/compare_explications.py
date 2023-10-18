@@ -24,8 +24,10 @@ if __name__ == '__main__':
         with open(log_path) as f:
             lines = list(filter(lambda line: '- Relevant:' in line, f.readlines()))
             explications = list(map(extract_explication, lines))
+        result = 'equal'
         half = int(len(explications) / 2)
         for i in range(half):
             if explications[i] != explications[half + i]:
-                raise Exception(f'Explications of dataset {dataset_name} are different')
-        print(f'Explications of dataset {dataset_name} are equal')
+                result = 'not equal'
+                break
+        print(f'Explications of dataset {dataset_name} are {result}.')

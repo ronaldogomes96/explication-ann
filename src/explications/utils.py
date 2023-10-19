@@ -39,8 +39,8 @@ def build_network(x, layers, metrics):
 def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output, use_box):
     if log_output:
         logging.info('--------------------------------------------------------------------------------')
-        logging.info(f'>>> INPUT\n{network["input"]}')
-        logging.info(f'>>> OUTPUT\n{network["output"]}')
+        logging.info(f'INPUT\n{network["input"]}')
+        logging.info(f'OUTPUT\n{network["output"]}')
     mdl = mdl.clone(new_name='clone')
     number_features = len(bounds['input'])
     number_outputs = len(bounds['output'])
@@ -73,7 +73,7 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
             explication_mask[constraint_index] = True
     mdl.end()
     if log_output:
-        logging.info('>>> EXPLICATION')
+        logging.info('EXPLICATION')
         logging.info(f'- Relevant: {list(network["features"][explication_mask])}')
         logging.info(f'- Irrelevant: {list(network["features"][~explication_mask])}')
         if np.any(box_mask):

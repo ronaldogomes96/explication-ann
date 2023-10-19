@@ -63,13 +63,12 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
             relax_input_mask = ~explication_mask
             relaxed_input_bounds = box_relax_input_to_bounds(network['input'], bounds['input'], relax_input_mask)
             has_solution = box_has_solution(relaxed_input_bounds, layers, network['output'])
-            metrics['with_box']['accumulated_box_time'] += (time() - start_time)
+            metrics['accumulated_box_time'] += (time() - start_time)
             if has_solution:
                 box_mask[constraint_index] = True
-                metrics['with_box']['calls_to_box'] += 1
+                metrics['irrelevant_by_box'] += 1
                 continue
-        mdl.solve(log_output=False)
-        if mdl.solution is not None:
+        if mdl.solve(log_output=False) is not None:
             mdl.add_constraint(constraint)
             explication_mask[constraint_index] = True
     mdl.end()
@@ -77,7 +76,7 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
         logging.info('>>> EXPLICATION')
         logging.info(f'- Relevant: {list(network["features"][explication_mask])}')
         logging.info(f'- Irrelevant: {list(network["features"][~explication_mask])}')
-        if use_box and np.any(box_mask):
+        if np.any(box_mask):
             irrelevant_by_solver = np.bitwise_xor(box_mask, ~explication_mask)
             logging.info(f'- Irrelevant by box: {list(network["features"][box_mask])}')
             logging.info(f'- Irrelevant by solver: {list(network["features"][irrelevant_by_solver])}')
@@ -85,9 +84,9 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
 
 def minimal_explications(mdl: Model, bounds, layers, x_test, y_pred, metrics, log_output=False, use_box=False):
     features = x_test.columns
-    key_box = 'with_box' if use_box else 'without_box'
+    key = 'accumulated_time_with_box' if use_box else 'accumulated_time_without_box'
     start_time = time()
     for (network_index, network_input), network_output in zip(x_test.iterrows(), y_pred):
         network = {'input': network_input, 'output': network_output, 'features': features}
         minimal_explication(mdl, layers, bounds, network, metrics, log_output, use_box)
-    metrics[key_box]['accumulated_time'] += (time() - start_time)
+    metrics[key] += (time() - start_time)

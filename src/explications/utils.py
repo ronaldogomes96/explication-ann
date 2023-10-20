@@ -40,6 +40,23 @@ def build_network(x, layers, metrics):
     return mdl, bounds
 
 
+def prepare_explication(features, explication_mask, box_mask):
+    return {
+        'relevant': list(features[explication_mask]),
+        'irrelevant': list(features[~explication_mask]),
+        'irrelevant_by_box': list(features[box_mask]),
+        'irrelevant_by_solver': list(features[np.bitwise_xor(box_mask, ~explication_mask)])
+    }
+
+
+def log_explication(explication):
+    logging.info(f'EXPLICATION:\n- Relevant: {explication["relevant"]}\n- Irrelevant: {explication["irrelevant"]}')
+    if explication['irrelevant_by_box']:
+        logging.info('BOX EXPLICATION:'
+                     f'\n- Irrelevant by box: {explication["irrelevant_by_box"]}'
+                     f'\n- Irrelevant by solver: {explication["irrelevant_by_solver"]}')
+
+
 def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output, use_box):
     if log_output:
         logging.info('--------------------------------------------------------------------------------')
@@ -64,8 +81,7 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
         explication_mask[constraint_index] = False
         if use_box:
             start_time = time()
-            relax_input_mask = ~explication_mask
-            relaxed_input_bounds = box_relax_input_to_bounds(network['input'], bounds['input'], relax_input_mask)
+            relaxed_input_bounds = box_relax_input_to_bounds(network['input'], bounds['input'], ~explication_mask)
             has_solution = box_has_solution(relaxed_input_bounds, layers, network['output'])
             metrics['accumulated_box_time'] += (time() - start_time)
             if has_solution:
@@ -76,15 +92,7 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
             mdl.add_constraint(constraint)
             explication_mask[constraint_index] = True
     mdl.end()
-    if log_output:
-        logging.info('EXPLICATION:'
-                     f'\n- Relevant: {list(network["features"][explication_mask])}'
-                     f'\n- Irrelevant: {list(network["features"][~explication_mask])}')
-        if np.any(box_mask):
-            irrelevant_by_solver = np.bitwise_xor(box_mask, ~explication_mask)
-            logging.info('BOX EXPLICATION:'
-                         f'\n- Irrelevant by box: {list(network["features"][box_mask])}'
-                         f'\n- Irrelevant by solver: {list(network["features"][irrelevant_by_solver])}')
+    return prepare_explication(network['features'], explication_mask, box_mask)
 
 
 def minimal_explications(mdl: Model, bounds, layers, x_test, y_pred, metrics, log_output=False, use_box=False):
@@ -93,5 +101,6 @@ def minimal_explications(mdl: Model, bounds, layers, x_test, y_pred, metrics, lo
     start_time = time()
     for (network_index, network_input), network_output in zip(x_test.iterrows(), y_pred):
         network = {'input': network_input, 'output': network_output, 'features': features}
-        minimal_explication(mdl, layers, bounds, network, metrics, log_output, use_box)
+        explication = minimal_explication(mdl, layers, bounds, network, metrics, log_output, use_box)
+        log_output and log_explication(explication)
     metrics[key] += (time() - start_time)

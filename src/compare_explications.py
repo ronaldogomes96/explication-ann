@@ -11,7 +11,7 @@ def load_datasets_from_env():
 
 
 def extract_explication(line):
-    regex = r'\[ \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3} - INFO \] - Relevant: (\[.+\])'
+    regex = r'- Relevant: (\[.+\])'
     result = re.search(regex, line)
     return result.group(1)
 

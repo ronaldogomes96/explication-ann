@@ -32,6 +32,10 @@ def build_network(x, layers, metrics):
     metrics['constraints'] += len(variables['input'])       # input constraints
     metrics['binary_vars'] += len(variables['output']) - 1  # q
     metrics['constraints'] += len(variables['output'])      # sum of q variables and q constraints
+    logging.info('Number of variables and constraints:'
+                 f'\n- Binary variables: {metrics["binary_vars"]}'
+                 f'\n- Continuous variables: {metrics["continuous_vars"]}'
+                 f'\n- Constraints: {metrics["constraints"]}')
     logging.info(f'Time of MILP model creation: {time() - start_time:.4f} seconds.')
     return mdl, bounds
 
@@ -39,8 +43,8 @@ def build_network(x, layers, metrics):
 def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output, use_box):
     if log_output:
         logging.info('--------------------------------------------------------------------------------')
-        logging.info(f'INPUT\n{network["input"]}')
-        logging.info(f'OUTPUT\n{network["output"]}')
+        logging.info(f'INPUT:\n{network["input"]}')
+        logging.info(f'OUTPUT:\n{network["output"]}')
     mdl = mdl.clone(new_name='clone')
     number_features = len(bounds['input'])
     number_outputs = len(bounds['output'])
@@ -73,13 +77,14 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
             explication_mask[constraint_index] = True
     mdl.end()
     if log_output:
-        logging.info('EXPLICATION')
-        logging.info(f'- Relevant: {list(network["features"][explication_mask])}')
-        logging.info(f'- Irrelevant: {list(network["features"][~explication_mask])}')
+        logging.info('EXPLICATION:'
+                     f'\n- Relevant: {list(network["features"][explication_mask])}'
+                     f'\n- Irrelevant: {list(network["features"][~explication_mask])}')
         if np.any(box_mask):
             irrelevant_by_solver = np.bitwise_xor(box_mask, ~explication_mask)
-            logging.info(f'- Irrelevant by box: {list(network["features"][box_mask])}')
-            logging.info(f'- Irrelevant by solver: {list(network["features"][irrelevant_by_solver])}')
+            logging.info('BOX EXPLICATION:'
+                         f'\n- Irrelevant by box: {list(network["features"][box_mask])}'
+                         f'\n- Irrelevant by solver: {list(network["features"][irrelevant_by_solver])}')
 
 
 def minimal_explications(mdl: Model, bounds, layers, x_test, y_pred, metrics, log_output=False, use_box=False):

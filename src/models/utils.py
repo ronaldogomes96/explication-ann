@@ -47,9 +47,8 @@ def evaluate(model: tf.keras.models.Sequential, x_test, y_test):
     logging.info(f'Starting to evaluate the dataset {dataset_name}...')
     start_time = time()
     loss, accuracy = model.evaluate(x_test, y_test, batch_size=batch_size, verbose=0)
+    logging.info(f'Result of evaluation:\n- Loss: {loss}\n- Accuracy: {accuracy * 100:.2f}%')
     logging.info(f'Time of evaluation: {time() - start_time:.4f} seconds.')
-    logging.info(f'- Loss: {loss}')
-    logging.info(f'- Accuracy: {accuracy * 100:.2f}%')
 
 
 def train(dataset_name, x_train, y_train, x_val, y_val) -> tf.keras.models.Sequential:

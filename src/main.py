@@ -55,18 +55,18 @@ if __name__ == '__main__':
         number_executions = int(os.getenv('EXECUTIONS'))
         step = 1 / (2 * number_executions * len(datasets))
         logging.info('--------------------------------------------------------------------------------')
-        logging.info(f'EXPLICATIONS FOR DATASET {dataset_name.upper()} WITH BOX')
-        for execution in range(number_executions):
-            print(f'{percentage_progress * 100:.2f}%')
-            log_output = not execution
-            minimal_explications(mdl, bounds, layers, x_test, y_pred, metrics, log_output, use_box=True)
-            percentage_progress += step
-        logging.info('--------------------------------------------------------------------------------')
         logging.info(f'EXPLICATIONS FOR DATASET {dataset_name.upper()} WITHOUT BOX')
         for execution in range(number_executions):
             print(f'{percentage_progress * 100:.2f}%')
             log_output = not execution
             minimal_explications(mdl, bounds, layers, x_test, y_pred, metrics, log_output)
+            percentage_progress += step
+        logging.info('--------------------------------------------------------------------------------')
+        logging.info(f'EXPLICATIONS FOR DATASET {dataset_name.upper()} WITH BOX')
+        for execution in range(number_executions):
+            print(f'{percentage_progress * 100:.2f}%')
+            log_output = not execution
+            minimal_explications(mdl, bounds, layers, x_test, y_pred, metrics, log_output, use_box=True)
             percentage_progress += step
         mdl.end()
         final_metrics = prepare_metrics(metrics, number_executions, len(x_test.columns), len(x_test))

@@ -50,7 +50,10 @@ def prepare_explication(features, explication_mask, box_mask):
 
 
 def log_explication(explication):
-    logging.info(f'EXPLICATION:\n- Relevant: {explication["relevant"]}\n- Irrelevant: {explication["irrelevant"]}')
+    logging.info('EXPLICATION:'
+                 f'\n- Length of explication: {len(explication["relevant"])}'
+                 f'\n- Relevant: {explication["relevant"]}'
+                 f'\n- Irrelevant: {explication["irrelevant"]}')
     if explication['irrelevant_by_box']:
         logging.info('BOX EXPLICATION:'
                      f'\n- Irrelevant by box: {explication["irrelevant_by_box"]}'
@@ -86,13 +89,16 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
             metrics['accumulated_box_time'] += (time() - start_time)
             if has_solution:
                 box_mask[constraint_index] = True
-                metrics['irrelevant_by_box'] += 1
                 continue
         if mdl.solve(log_output=False) is not None:
             mdl.add_constraint(constraint)
             explication_mask[constraint_index] = True
     mdl.end()
-    return prepare_explication(network['features'], explication_mask, box_mask)
+    explication = prepare_explication(network['features'], explication_mask, box_mask)
+    if use_box:
+        metrics['irrelevant_by_box'] += len(explication['irrelevant_by_box'])
+        metrics['irrelevant_by_solver'] += len(explication['irrelevant_by_solver'])
+    return explication
 
 
 def minimal_explications(mdl: Model, bounds, layers, x_test, y_pred, metrics, log_output=False, use_box=False):

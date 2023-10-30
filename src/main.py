@@ -69,7 +69,7 @@ if __name__ == '__main__':
             minimal_explications(mdl, bounds, layers, x_test, y_pred, metrics, log_output, use_box=True)
             percentage_progress += step
         mdl.end()
-        final_metrics = prepare_metrics(metrics, number_executions, len(x_test.columns), len(x_test))
+        final_metrics = prepare_metrics(metrics, number_executions, len(x_test))
         log_metrics(final_metrics)
         percentage_progress = (dataset_index + 1) / len(datasets)
     print(f'{percentage_progress * 100:.2f}%')

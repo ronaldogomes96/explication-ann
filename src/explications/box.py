@@ -11,8 +11,10 @@ def box_forward(input_bounds, input_weights, input_biases, apply_relu=True):
     input_bounds = np.concatenate((input_bounds, np.flip(input_bounds, axis=1)), axis=0)
     input_weights = np.concatenate((np.maximum(input_weights, 0), np.minimum(input_weights, 0)), axis=1)
     input_biases = np.reshape(input_biases, (-1, 1))
+
     output_bounds = np.dot(input_weights, input_bounds) + input_biases
-    return np.maximum(output_bounds, 0) if apply_relu else output_bounds
+    relu_result = np.maximum(output_bounds, 0) if apply_relu else output_bounds
+    return output_bounds, relu_result
 
 
 def box_check_solution(output_bounds, network_output):
@@ -23,10 +25,18 @@ def box_check_solution(output_bounds, network_output):
 
 
 def box_has_solution(bounds, layers, network_output):
+    box_bounds = []
     last_layer = layers[-1]
+
     for layer in layers:
         weights = layer.get_weights()[0].T
         biases = layer.get_weights()[1]
-        bounds = box_forward(bounds, weights, biases) if layer != last_layer \
-            else box_forward(bounds, weights, biases, apply_relu=False)
-    return box_check_solution(bounds, network_output)
+
+        if layer != last_layer:
+            layer_bounds, bounds = box_forward(bounds, weights, biases)
+            box_bounds.append(layer_bounds)
+        else:
+            _, bounds = box_forward(bounds, weights, biases, apply_relu=False)
+            box_bounds.append(bounds)
+
+    return box_check_solution(bounds, network_output), box_bounds

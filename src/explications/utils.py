@@ -103,25 +103,40 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
 
         explication_mask[constraint_index] = False
         if use_box:
-            ## Tempo de explicação do box
-            start_time = time()
+            start_time_box = time()
+
             relaxed_input_bounds = box_relax_input_to_bounds(network['input'], bounds['input'], ~explication_mask)
 
             has_solution, box_bounds = box_has_solution(relaxed_input_bounds, layers, network['output'])
 
-            metrics['accumulated_box_time'] += (time() - start_time)
+            if not use_box_optimization:
+                metrics['accumulated_box_time'] += (time() - start_time_box)
 
             if has_solution:
                 box_mask[constraint_index] = True
                 continue
             elif use_box_optimization:
+                metrics['times_optimization_used'] += 1
+                start_time_optimization = time()
+
                 otimal_bounds = get_otimal_bounds(bounds, box_bounds)
                 tjeng_variables = get_tjeng_variables(mdl_box, bounds, layers)
                 build_tjeng_network(mdl_box, layers, tjeng_variables, metrics, otimal_bounds)
 
-        if mdl_box.solve(log_output=False) is not None:
+                metrics['accumulated_optimization_time'] += (time() - start_time_optimization)
+
+        if not use_box or use_box_optimization:
+            key = 'accumulated_solver_time_without_optimization' if use_box_optimization else 'accumulated_solver_time_without_optimization'
+            start_time_solver = time()
+            solver_solution = mdl_box.solve(log_output=False)
+            metrics[key] += (time() - start_time_solver)
+        else:
+            solver_solution = mdl_box.solve(log_output=False)
+
+        if solver_solution is not None:
             mdl.add_constraint(constraint)
             explication_mask[constraint_index] = True
+
     mdl.end()
     explication = prepare_explication(network['features'], explication_mask, box_mask)
     if use_box:
@@ -133,8 +148,15 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
 def minimal_explications(mdl: Model, bounds, layers, x_test, y_pred, metrics,
                          log_output=False, use_box=False, use_box_optimization=False):
     features = x_test.columns
-    key = 'accumulated_time_with_box' if use_box else 'accumulated_time_without_box'
-    start_time = time()
+
+    if not use_box:
+        key = 'accumulated_time_without_box'
+    elif use_box and use_box_optimization:
+        key = 'accumulated_time_with_box_and_optimization'
+    else:
+        key = 'accumulated_time_with_box'
+
+    start_time_explication = time()
 
     for (network_index, network_input), network_output in zip(x_test.iterrows(), y_pred):
         network = {'input': network_input,
@@ -144,4 +166,4 @@ def minimal_explications(mdl: Model, bounds, layers, x_test, y_pred, metrics,
                                           log_output, use_box, use_box_optimization)
 
         log_output and log_explication(explication)
-    metrics[key] += (time() - start_time)
+    metrics[key] += (time() - start_time_explication)

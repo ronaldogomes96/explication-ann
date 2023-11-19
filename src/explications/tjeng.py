@@ -25,13 +25,12 @@ def build_tjeng_network(mdl: Model, layers, variables, metrics, otimized_bounds=
             if otimized_bounds is None:
                 upper_bound = maximize(mdl, result)
                 lower_bound = minimize(mdl, result)
-                layer_bounds.append((lower_bound, upper_bound))
+
+                layer_bounds.append((lower_bound, upper_bound)) if layer != last_layer \
+                    else output_bounds.append((lower_bound, upper_bound))
             else:
                 lower_bound = otimized_bounds[layer_index][neuron_index][0]
                 upper_bound = otimized_bounds[layer_index][neuron_index][1]
-
-            layer_bounds.append((lower_bound, upper_bound)) if layer != last_layer \
-                else output_bounds.append((lower_bound, upper_bound))
 
             if upper_bound <= 0 and layer != last_layer:
                 mdl.add_constraint(y == 0, ctname=f'c_{layer_index}_{neuron_index}')
@@ -54,6 +53,7 @@ def build_tjeng_network(mdl: Model, layers, variables, metrics, otimized_bounds=
 
         if layer != last_layer:
             layers_bounds.append(layer_bounds)
+
     return layers_bounds, np.array(output_bounds)
 
 

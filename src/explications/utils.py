@@ -126,7 +126,7 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
                 metrics['accumulated_optimization_time'] += (time() - start_time_optimization)
 
         if not use_box or use_box_optimization:
-            key = 'accumulated_solver_time_without_optimization' if use_box_optimization else 'accumulated_solver_time_without_optimization'
+            key = 'accumulated_solver_time_with_optimization' if use_box_optimization else 'accumulated_solver_time_without_optimization'
             start_time_solver = time()
             solver_solution = mdl_box.solve(log_output=False)
             metrics[key] += (time() - start_time_solver)

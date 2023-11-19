@@ -31,7 +31,7 @@ def prepare_metrics(metrics, number_executions, len_x):
         'avg_time_with_box_and_optimization': metrics['accumulated_time_with_box_and_optimization'] / number_explications,
         'avg_time_box': metrics['accumulated_box_time'] / number_explications,
         'avg_time_solver_without_optimization': metrics['accumulated_solver_time_without_optimization'] / number_explications,
-        'avg_time_solver_with_optimization': metrics['accumulated_solver_time_without_optimization'] / metrics['times_optimization_used'],
+        'avg_time_solver_with_optimization': metrics['accumulated_solver_time_with_optimization'] / metrics['times_optimization_used'],
         'irrelevant_by_box': irrelevant_by_box,
         'irrelevant_by_solver': irrelevant_by_solver,
         'percentage_irrelevant_by_box': irrelevant_by_box / total,

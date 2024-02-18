@@ -32,6 +32,8 @@ def prepare_metrics(metrics, number_executions, len_x):
         'avg_time_box': metrics['accumulated_box_time'] / number_explications,
         'avg_time_solver_without_optimization': metrics['accumulated_solver_time_without_optimization'] / number_explications,
         'avg_time_solver_with_optimization': metrics['accumulated_solver_time_with_optimization'] / metrics['times_optimization_used'],
+        'avg_time_for_optimization': metrics['accumulated_optimization_time'] / metrics[
+            'times_optimization_used'],
         'irrelevant_by_box': irrelevant_by_box,
         'irrelevant_by_solver': irrelevant_by_solver,
         'percentage_irrelevant_by_box': irrelevant_by_box / total,
@@ -57,9 +59,10 @@ def log_metrics(metrics):
                  f'({metrics["percentage_irrelevant_by_box"] * 100:.2f}%)'
                  f'\n- Average features irrelevant by solver: {metrics["irrelevant_by_solver"]:.4f} '
                  f'({metrics["percentage_irrelevant_by_solver"] * 100:.2f}%)'
-                 '\nOPTIMIZATION METRICS:'
+                 '\nOPTIMIZATION METRICS (WHEN USED):'
                  f'\n- Average time for solver without optimization: {avg_time_solver_without_optimization:.4f} seconds'
                  f'\n- Average time for solver with optimization: {avg_time_solver_with_optimization:.4f} seconds'
+                 f'\n- Average time for optimization: {metrics["avg_time_for_optimization"]:.4f} seconds'
                  )
 
     result, diff = ('better', avg_time_without_box - avg_time_with_box) if avg_time_with_box < avg_time_without_box \

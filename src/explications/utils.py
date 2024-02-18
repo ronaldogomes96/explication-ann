@@ -15,12 +15,11 @@ def build_network(x, layers, metrics):
     logging.info(f'Creating MILP model for the dataset {metrics["dataset_name"]}...')
     start_time = time()
 
-    mdl_initial = Model(name='initial_bounds')
-    #mdl = Model(name='original')
+    mdl = Model(name='Original')
 
     variables = {'decision': [], 'intermediate': []}
     bounds = {}
-    variables['input'], bounds['input'] = get_input_variables_and_bounds(mdl_initial, x, metrics)
+    variables['input'], bounds['input'] = get_input_variables_and_bounds(mdl, x, metrics)
     last_layer = layers[-1]
 
     for layer_index, layer in enumerate(layers):
@@ -28,28 +27,26 @@ def build_network(x, layers, metrics):
         metrics['continuous_vars'] += number_variables
 
         if layer == last_layer:
-            variables['output'] = get_output_variables(mdl_initial, number_variables)
+            variables['output'] = get_output_variables(mdl, number_variables)
             break
-        variables['intermediate'].append(get_intermediate_variables(mdl_initial, layer_index, number_variables))
-        variables['decision'].append(get_decision_variables(mdl_initial, layer_index, number_variables))
+        variables['intermediate'].append(get_intermediate_variables(mdl, layer_index, number_variables))
+        variables['decision'].append(get_decision_variables(mdl, layer_index, number_variables))
         metrics['binary_vars'] += number_variables
 
-    mdl = mdl_initial.clone(new_name='Original')
-    bounds['layers'], bounds['output'] = build_tjeng_network(mdl_initial, layers, variables, metrics)
+    mdl_without_constraints = mdl.clone(new_name='Without_constraints')
+    bounds['layers'], bounds['output'] = build_tjeng_network(mdl, layers, variables, metrics)
 
-    # add metrics of insert_tjeng_output_constraints
     metrics['constraints'] += len(variables['input'])       # input constraints
     metrics['binary_vars'] += len(variables['output']) - 1  # q
     metrics['constraints'] += len(variables['output'])      # sum of q variables and q constraints
 
-    ## Add aqui meus logs de contraints mudadas apos o box
     logging.info('Number of variables and constraints:'
                  f'\n- Binary variables: {metrics["binary_vars"]}'
                  f'\n- Continuous variables: {metrics["continuous_vars"]}'
                  f'\n- Constraints: {metrics["constraints"]}')
     logging.info(f'Time of MILP model creation: {time() - start_time:.4f} seconds.')
 
-    return mdl, bounds
+    return mdl, mdl_without_constraints, bounds
 
 
 def prepare_explication(features, explication_mask, box_mask):
@@ -139,7 +136,7 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
 
     mdl.end()
     explication = prepare_explication(network['features'], explication_mask, box_mask)
-    if use_box:
+    if use_box and not use_box_optimization:
         metrics['irrelevant_by_box'] += len(explication['irrelevant_by_box'])
         metrics['irrelevant_by_solver'] += len(explication['irrelevant_by_solver'])
     return explication

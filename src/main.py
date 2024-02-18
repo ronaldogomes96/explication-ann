@@ -61,7 +61,7 @@ if __name__ == '__main__':
 
         y_pred = np.argmax(model.predict(x_test), axis=1)
 
-        mdl, bounds = build_network(x, layers, metrics)
+        mdl, mdl_without_constraints, bounds = build_network(x, layers, metrics)
 
         number_executions = int(os.getenv('EXECUTIONS'))
         step = 1 / (3 * number_executions * len(datasets))
@@ -87,7 +87,7 @@ if __name__ == '__main__':
         for execution in range(number_executions):
             print(f'{percentage_progress * 100:.2f}%')
             log_output = not execution
-            minimal_explications(mdl, bounds, layers, x_test, y_pred, metrics, log_output, use_box=True, use_box_optimization=True)
+            minimal_explications(mdl_without_constraints, bounds, layers, x_test, y_pred, metrics, log_output, use_box=True, use_box_optimization=True)
             percentage_progress += step
 
         mdl.end()

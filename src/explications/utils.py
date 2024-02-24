@@ -96,7 +96,8 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
 
     for constraint_index, constraint in enumerate(input_constraints):
         mdl.remove_constraint(constraint)
-        mdl_box = mdl.clone(new_name='clone_box')
+
+        mdl_box = mdl
 
         explication_mask[constraint_index] = False
         if use_box:
@@ -113,6 +114,8 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
                 box_mask[constraint_index] = True
                 continue
             elif use_box_optimization:
+                mdl_box = mdl.clone(new_name='clone_box')
+
                 metrics['times_optimization_used'] += 1
                 start_time_optimization = time()
 

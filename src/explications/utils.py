@@ -119,7 +119,7 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
                 metrics['times_optimization_used'] += 1
                 start_time_optimization = time()
 
-                otimal_bounds = get_otimal_bounds(bounds, box_bounds)
+                otimal_bounds = get_otimal_bounds(bounds, box_bounds, metrics)
                 tjeng_variables = get_tjeng_variables(mdl_box, bounds, layers)
                 build_tjeng_network(mdl_box, layers, tjeng_variables, metrics, otimal_bounds)
 

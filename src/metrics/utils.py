@@ -14,6 +14,9 @@ def create_metrics(dataset_name):
         'times_optimization_used': 0,
         'irrelevant_by_box': 0,
         'irrelevant_by_solver': 0,
+        'times_box_optimization_calculated': 0,
+        'times_box_optimize_some_bounds': 0,
+        'times_box_optimize_two_bounds': 0,
         'continuous_vars': 0,
         'binary_vars': 0,
         'constraints': 0
@@ -24,6 +27,8 @@ def prepare_metrics(metrics, number_executions, len_x):
     number_explications = number_executions * len_x
     irrelevant_by_box = metrics['irrelevant_by_box'] / number_explications
     irrelevant_by_solver = metrics['irrelevant_by_solver'] / number_explications
+    times_percentage_optimize_some_bounds = metrics['times_box_optimize_some_bounds'] / metrics['times_box_optimization_calculated']
+    times_percentage_optimize_two_bounds = metrics['times_box_optimize_two_bounds'] / metrics['times_box_optimization_calculated']
     total = irrelevant_by_box + irrelevant_by_solver
     return {
         'avg_time_with_box': metrics['accumulated_time_with_box'] / number_explications,
@@ -37,7 +42,9 @@ def prepare_metrics(metrics, number_executions, len_x):
         'irrelevant_by_box': irrelevant_by_box,
         'irrelevant_by_solver': irrelevant_by_solver,
         'percentage_irrelevant_by_box': irrelevant_by_box / total,
-        'percentage_irrelevant_by_solver': irrelevant_by_solver / total
+        'percentage_irrelevant_by_solver': irrelevant_by_solver / total,
+        'percentage_optimze_some_bounds': times_percentage_optimize_some_bounds * 100,
+        'percentage_optimze_two_bounds': times_percentage_optimize_two_bounds * 100
     }
 
 
@@ -63,6 +70,8 @@ def log_metrics(metrics):
                  f'\n- Average time for solver without optimization: {avg_time_solver_without_optimization:.4f} seconds'
                  f'\n- Average time for solver with optimization: {avg_time_solver_with_optimization:.4f} seconds'
                  f'\n- Average time for optimization: {metrics["avg_time_for_optimization"]:.4f} seconds'
+                 f'\n- Percentage times that box optmize some bound: {metrics["percentage_optimze_some_bounds"]:.4f}%'
+                 f'\n- Percentage times that box optmize two bounds: {metrics["percentage_optimze_two_bounds"]:.4f}%'
                  )
 
     result, diff = ('better', avg_time_without_box - avg_time_with_box) if avg_time_with_box < avg_time_without_box \

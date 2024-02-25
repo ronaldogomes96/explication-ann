@@ -1,21 +1,27 @@
 import numpy as np
 
 
-def get_otimal_bounds(original_bounds, box_bounds):
+def get_otimal_bounds(original_bounds, box_bounds, metrics):
     otimal_bounds = []
 
     for layer_index, layer_box_values in enumerate(box_bounds):
         layer_bounds = []
 
         for neuron_index, neuron_box_values in enumerate(layer_box_values):
-            if layer_index != (len(box_bounds) - 1):
-                min = np.maximum(original_bounds['layers'][layer_index][neuron_index][0], neuron_box_values[0])
-                max = np.minimum(original_bounds['layers'][layer_index][neuron_index][1], neuron_box_values[1])
-                layer_bounds.append((min, max))
-            else:
-                min = np.maximum(original_bounds['output'][neuron_index][0], neuron_box_values[0])
-                max = np.minimum(original_bounds['output'][neuron_index][1], neuron_box_values[1])
-                layer_bounds.append((min, max))
+            lower = original_bounds['layers'][layer_index] if layer_index != (len(box_bounds) - 1) else original_bounds['output']
+
+            min = np.maximum(lower[neuron_index][0], neuron_box_values[0])
+            max = np.minimum(lower[neuron_index][1], neuron_box_values[1])
+
+            layer_bounds.append((min, max))
+
+            metrics['times_box_optimization_calculated'] += 1
+
+            if (min > lower[neuron_index][0]) or (max < lower[neuron_index][1]):
+                metrics['times_box_optimize_some_bounds'] += 1
+
+                if (min > lower[neuron_index][0]) and (max < lower[neuron_index][1]):
+                    metrics['times_box_optimize_two_bounds'] += 1
 
         otimal_bounds.append(layer_bounds)
 

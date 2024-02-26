@@ -28,18 +28,26 @@ def build_tjeng_network(mdl: Model, layers, variables, metrics, otimized_bounds=
 
                 layer_bounds.append((lower_bound, upper_bound)) if layer != last_layer \
                     else output_bounds.append((lower_bound, upper_bound))
+
+                metrics['accumulated_calls_build_network_without_bounds'] += 1
             else:
                 lower_bound = otimized_bounds[layer_index][neuron_index][0]
                 upper_bound = otimized_bounds[layer_index][neuron_index][1]
 
+                metrics['accumulated_calls_build_network_with_optimizated_bounds'] += 1
+
+            var_name = 'accumulated_calls_ideal_constraints_without_bounds' if otimized_bounds is None else 'accumulated_calls_ideal_constraints_with_optimizated_bounds'
+
             if upper_bound <= 0 and layer != last_layer:
                 mdl.add_constraint(y == 0, ctname=f'c_{layer_index}_{neuron_index}')
                 metrics['constraints'] += 1
+                metrics[var_name] += 1
                 continue
 
             if lower_bound >= 0 and layer != last_layer:
                 mdl.add_constraint(y == result, ctname=f'c_{layer_index}_{neuron_index}')
                 metrics['constraints'] += 1
+                metrics[var_name] += 1
                 continue
 
             if layer != last_layer:
@@ -50,6 +58,9 @@ def build_tjeng_network(mdl: Model, layers, variables, metrics, otimized_bounds=
             else:
                 mdl.add_constraint(y == result)
                 metrics['constraints'] += 1
+
+            var_name = 'accumulated_calls_binary_constraints_without_bounds' if otimized_bounds is None else 'accumulated_calls_binary_constraints_with_optimizated_bounds'
+            metrics[var_name] += 1
 
         if layer != last_layer:
             layers_bounds.append(layer_bounds)

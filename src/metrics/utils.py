@@ -17,6 +17,12 @@ def create_metrics(dataset_name):
         'times_box_optimization_calculated': 0,
         'times_box_optimize_some_bounds': 0,
         'times_box_optimize_two_bounds': 0,
+        'accumulated_calls_build_network_without_bounds': 0,
+        'accumulated_calls_ideal_constraints_without_bounds': 0,
+        'accumulated_calls_binary_constraints_without_bounds': 0,
+        'accumulated_calls_build_network_with_optimizated_bounds': 0,
+        'accumulated_calls_ideal_constraints_with_optimizated_bounds': 0,
+        'accumulated_calls_binary_constraints_with_optimizated_bounds': 0,
         'continuous_vars': 0,
         'binary_vars': 0,
         'constraints': 0
@@ -29,6 +35,10 @@ def prepare_metrics(metrics, number_executions, len_x):
     irrelevant_by_solver = metrics['irrelevant_by_solver'] / number_explications
     times_percentage_optimize_some_bounds = metrics['times_box_optimize_some_bounds'] / metrics['times_box_optimization_calculated']
     times_percentage_optimize_two_bounds = metrics['times_box_optimize_two_bounds'] / metrics['times_box_optimization_calculated']
+    percentage_calls_ideal_constraints_without_bounds = metrics['accumulated_calls_ideal_constraints_without_bounds'] / metrics['accumulated_calls_build_network_without_bounds']
+    percentage_calls_binary_constraints_without_bounds = metrics['accumulated_calls_binary_constraints_without_bounds'] / metrics['accumulated_calls_build_network_without_bounds']
+    percentage_calls_ideal_constraints_with_optimizated_bounds = metrics['accumulated_calls_ideal_constraints_with_optimizated_bounds'] / metrics['accumulated_calls_build_network_with_optimizated_bounds']
+    percentage_calls_binary_constraints_with_optimizated_bounds = metrics['accumulated_calls_binary_constraints_with_optimizated_bounds'] / metrics['accumulated_calls_build_network_with_optimizated_bounds']
     total = irrelevant_by_box + irrelevant_by_solver
     return {
         'avg_time_with_box': metrics['accumulated_time_with_box'] / number_explications,
@@ -44,7 +54,11 @@ def prepare_metrics(metrics, number_executions, len_x):
         'percentage_irrelevant_by_box': irrelevant_by_box / total,
         'percentage_irrelevant_by_solver': irrelevant_by_solver / total,
         'percentage_optimze_some_bounds': times_percentage_optimize_some_bounds * 100,
-        'percentage_optimze_two_bounds': times_percentage_optimize_two_bounds * 100
+        'percentage_optimze_two_bounds': times_percentage_optimize_two_bounds * 100,
+        'percentage_calls_ideal_constraints_without_bounds': percentage_calls_ideal_constraints_without_bounds * 100,
+        'percentage_calls_binary_constraints_without_bounds': percentage_calls_binary_constraints_without_bounds * 100,
+        'percentage_calls_ideal_constraints_with_optimizated_bounds': percentage_calls_ideal_constraints_with_optimizated_bounds * 100,
+        'percentage_calls_binary_constraints_with_optimizated_bounds': percentage_calls_binary_constraints_with_optimizated_bounds * 100
     }
 
 
@@ -72,6 +86,10 @@ def log_metrics(metrics):
                  f'\n- Average time for optimization: {metrics["avg_time_for_optimization"]:.4f} seconds'
                  f'\n- Percentage times that box optmize some bound: {metrics["percentage_optimze_some_bounds"]:.4f}%'
                  f'\n- Percentage times that box optmize two bounds: {metrics["percentage_optimze_two_bounds"]:.4f}%'
+                 f'\n- Percentage times that calls ideal constraints without bounds: {metrics["percentage_calls_ideal_constraints_without_bounds"]:.4f}%'
+                 f'\n- Percentage times that calls binary constraints without bounds: {metrics["percentage_calls_binary_constraints_without_bounds"]:.4f}%'
+                 f'\n- Percentage times that calls ideal constraints with optimizated bounds: {metrics["percentage_calls_ideal_constraints_with_optimizated_bounds"]:.4f}%'
+                 f'\n- Percentage times that calls binary constraints with optimizated bounds: {metrics["percentage_calls_binary_constraints_with_optimizated_bounds"]:.4f}%'
                  )
 
     result, diff = ('better', avg_time_without_box - avg_time_with_box) if avg_time_with_box < avg_time_without_box \

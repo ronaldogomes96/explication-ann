@@ -39,24 +39,38 @@ def build_tjeng_network(mdl: Model, layers, variables, metrics, otimized_bounds=
             var_name = 'accumulated_calls_ideal_constraints_without_bounds' if otimized_bounds is None else 'accumulated_calls_ideal_constraints_with_optimizated_bounds'
 
             if upper_bound <= 0 and layer != last_layer:
-                mdl.add_constraint(y == 0, ctname=f'c_{layer_index}_{neuron_index}')
+                if otimized_bounds is None:
+                    mdl.add_constraint(y == 0, ctname=f'c_{layer_index}_{neuron_index}')
+                else:
+                    mdl.add_user_cut_constraint(y == 0, name=f'c_{layer_index}_{neuron_index}')
                 metrics['constraints'] += 1
                 metrics[var_name] += 1
                 continue
 
             if lower_bound >= 0 and layer != last_layer:
-                mdl.add_constraint(y == result, ctname=f'c_{layer_index}_{neuron_index}')
+                if otimized_bounds is None:
+                    mdl.add_constraint(y == result, ctname=f'c_{layer_index}_{neuron_index}')
+                else:
+                    mdl.add_user_cut_constraint(y == result, name=f'c_{layer_index}_{neuron_index}')
                 metrics['constraints'] += 1
                 metrics[var_name] += 1
                 continue
 
             if layer != last_layer:
-                mdl.add_constraint(y <= result - lower_bound * (1 - z))
-                mdl.add_constraint(y >= result)
-                mdl.add_constraint(y <= upper_bound * z)
+                if otimized_bounds is None:
+                    mdl.add_constraint(y <= result - lower_bound * (1 - z))
+                    mdl.add_constraint(y >= result)
+                    mdl.add_constraint(y <= upper_bound * z)
+                else:
+                    mdl.add_user_cut_constraint(y <= result - lower_bound * (1 - z))
+                    mdl.add_user_cut_constraint(y >= result)
+                    mdl.add_user_cut_constraint(y <= upper_bound * z)
                 metrics['constraints'] += 3
             else:
-                mdl.add_constraint(y == result)
+                if otimized_bounds is None:
+                    mdl.add_constraint(y == result)
+                else:
+                    mdl.add_user_cut_constraint(y == result)
                 metrics['constraints'] += 1
 
             var_name = 'accumulated_calls_binary_constraints_without_bounds' if otimized_bounds is None else 'accumulated_calls_binary_constraints_with_optimizated_bounds'

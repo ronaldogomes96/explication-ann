@@ -97,8 +97,6 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
     for constraint_index, constraint in enumerate(input_constraints):
         mdl.remove_constraint(constraint)
 
-        mdl_box = mdl
-
         explication_mask[constraint_index] = False
         if use_box:
             start_time_box = time()
@@ -114,24 +112,23 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
                 box_mask[constraint_index] = True
                 continue
             elif use_box_optimization:
-                mdl_box = mdl.clone(new_name='clone_box')
-
                 metrics['times_optimization_used'] += 1
                 start_time_optimization = time()
-
                 otimal_bounds = get_otimal_bounds(bounds, box_bounds, metrics)
-                tjeng_variables = get_tjeng_variables(mdl_box, bounds, layers)
-                build_tjeng_network(mdl_box, layers, tjeng_variables, metrics, otimal_bounds)
-
+                tjeng_variables = get_tjeng_variables(mdl, bounds, layers)
+                build_tjeng_network(mdl, layers, tjeng_variables, metrics, otimal_bounds)
                 metrics['accumulated_optimization_time'] += (time() - start_time_optimization)
 
         if not use_box or use_box_optimization:
             key = 'accumulated_solver_time_with_optimization' if use_box_optimization else 'accumulated_solver_time_without_optimization'
             start_time_solver = time()
-            solver_solution = mdl_box.solve(log_output=False)
+            solver_solution = mdl.solve(log_output=False)
             metrics[key] += (time() - start_time_solver)
+
+            if use_box_optimization:
+                mdl.clear_user_cut_constraints()
         else:
-            solver_solution = mdl_box.solve(log_output=False)
+            solver_solution = mdl.solve(log_output=False)
 
         if solver_solution is not None:
             mdl.add_constraint(constraint)

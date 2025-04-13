@@ -121,9 +121,10 @@ def minimal_explication(mdl: Model, layers, bounds, network, metrics, log_output
 
         if not use_box or use_box_optimization:
             key = 'accumulated_solver_time_with_optimization' if use_box_optimization else 'accumulated_solver_time_without_optimization'
+
             start_time_solver = time()
             solver_solution = mdl.solve(log_output=False)
-            metrics[key] += (time() - start_time_solver)
+            metrics[key].append(time() - start_time_solver)
 
             if use_box_optimization:
                 mdl.clear_user_cut_constraints()
@@ -153,14 +154,16 @@ def minimal_explications(mdl: Model, bounds, layers, x_test, y_pred, metrics,
     else:
         key = 'accumulated_time_with_box'
 
-    start_time_explication = time()
-
     for (network_index, network_input), network_output in zip(x_test.iterrows(), y_pred):
         network = {'input': network_input,
                    'output': network_output,
                    'features': features}
+
+        start_time_explication = time()
+
         explication = minimal_explication(mdl, layers, bounds, network, metrics,
                                           log_output, use_box, use_box_optimization)
 
+        metrics[key].append((time() - start_time_explication))
+
         log_output and log_explication(explication)
-    metrics[key] += (time() - start_time_explication)

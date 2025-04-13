@@ -8,6 +8,7 @@ def get_input_variables_and_bounds(mdl: Model, x, metrics):
     input_bounds = []
     for column_index, column in enumerate(x.columns):
         unique_values = x[column].unique()
+        # Como os valores de input são normalizados, esse max e min perde sentido, será sempre 0 e 1
         lower_bound, upper_bound = unique_values.min(), unique_values.max()
         name = f'x_{column_index}'
         if len(unique_values) == 2:
